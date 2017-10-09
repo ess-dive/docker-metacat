@@ -1,4 +1,5 @@
-# <img src="https://knb.ecoinformatics.org/knb/docs/_images/metacat-logo-darkgray.png" 
+# Metacat
+<img src="https://knb.ecoinformatics.org/knb/docs/_images/metacat-logo-darkgray.png" 
 alt="metacat" height="75" width="65"/>
 
 *The official metacat docker image, made in a collaboration between NCEAS and LBNL*
