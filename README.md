@@ -66,9 +66,7 @@ Build the docker metacat image:
 
     VERSION_MAJOR_MINOR=2.8
     VERSION_PATCH=5
-    VERSION=$VERSION_MAJOR_MINOR.$VERSION_PATCH
-    ./setup.sh $VERSION $VERSION_MAJOR_MINOR
-    docker build --build-arg METACAT_VERSION=$VERSION -t metacat:$VERSION $VERSION_MAJOR_MINOR
+    ./build.sh $VERSION_MAJOR_MINOR $VERSION_PATCH
  
 Get a copy of the `metacat.properties` file.
 
@@ -133,7 +131,7 @@ Run the docker container
            -p 8080:8080    \
            -e ADMIN=metacat-admin@localhost   \
            -e ADMINPASS=metacat-admin    \
-           --name mn  \
+           --name mn  -d\
            --network=metacat-network  \
            -it metacat:$VERSION 
            
