@@ -79,7 +79,7 @@ Edit the following properties:
     
     ######## Configuration utility section  ################
     
-    configutil.propertiesConfigured=trueconfigutil.propertiesConfigured=true
+    configutil.propertiesConfigured=true
     configutil.authConfigured=true
     configutil.skinsConfigured=true
     configutil.databaseConfigured=true
