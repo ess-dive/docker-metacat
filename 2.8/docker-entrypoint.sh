@@ -34,9 +34,22 @@ if [ "$1" = 'catalina.sh' ]; then
 
     # If there is an admin/password set and it does not exist in the passwords file
     # set it
-    if [ ! -z "$ADMIN" ] && [ ! -z "$ADMINPASS" ];
+    if [ ! -z "$ADMIN" ];
     then
         USER_PWFILE="/var/metacat/users/password.xml"
+
+        # Look for the password file
+        if [  ! -z "$ADMINPASS_FILE"  ] && [ -s $ADMINPASS_FILE ];then
+            ADMINPASS=`cat $ADMINPASS_FILE`
+        fi
+
+        if [ -z "$ADMINPASS" ];
+        then
+            echo "ERROR: The admin user (ADMIN) was set but no password value was set."
+            echo "   You may use ADMINPASS or ADMINPASS_FILE to set the administrator password"
+            exit -1
+        fi
+
         # look specifically for the user password file, as it is expected if the configuration is completed
         if [ ! -s $USER_PWFILE ] || [ $(grep $ADMIN /var/metacat/users/password.xml | wc -l) -eq 0  ]; then
 

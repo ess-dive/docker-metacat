@@ -50,6 +50,18 @@ documentation for more information on how to configure a Metacat member node.
 
 # How to use this image
 
+## Image Environment Variables
+The following environment variables are optional:
+
+**ADMIN:** the administrator username.  Please note that this must match the 
+`auth.administrator` value in `metacat.properties`.
+
+**ADMINPASS:** The password for the admin user
+
+**ADMINPASS_FILE:**  A file that contains the admin user password.  This file 
+must be mountied inside the container.
+
+
 Build the docker metacat image:
 
     VERSION_MAJOR_MINOR=2.8
@@ -122,7 +134,7 @@ Run the docker container
            -e ADMIN=metacat-admin@localhost   \
            -e ADMINPASS=metacat-admin    \
            --name mn  \
-           -d --network=metacat-network  \
+           --network=metacat-network  \
            -it metacat:$VERSION 
            
 
