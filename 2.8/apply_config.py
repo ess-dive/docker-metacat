@@ -14,7 +14,7 @@ import uuid
 from collections import OrderedDict
 
 
-def get_properties(properties_file, include_comments=False):
+def get_properties(properties_file, include_comments=False, expand_variables=False):
     """
     Load properties file into a file into a dictionary
 
@@ -47,8 +47,8 @@ def get_properties(properties_file, include_comments=False):
                     key, value = line.split("=", 1)
                     properties[key] = value
                 else:
-                    # the property is on multple lines
-                    # so, the entire line
+                    # the property is on multiple lines
+                    # so, the entire line will be captured
                     value = line
                     properties[key] += '\n'
                     properties[key] += value
@@ -57,6 +57,10 @@ def get_properties(properties_file, include_comments=False):
                 if value.endswith('\\'):
                     # found a line continuation character
                     concat_next = True
+
+                # resolve environment variables
+                if expand_variables:
+                    properties[key] = os.path.expandvars(properties[key])
             elif include_comments:
                 # This is a blank line or a comment
                 key = "#{}".format(uuid.uuid4())
@@ -76,7 +80,7 @@ if __name__ == "__main__":
     metacat_properties_file = sys.argv[2]
 
     # Load the application and metacat properties in dictionaries
-    app_properties = get_properties(app_properties_file)
+    app_properties = get_properties(app_properties_file, expand_variables=True)
     metacat_properties = get_properties(metacat_properties_file, include_comments=True)
 
     # Check to see if the application properties exist in the metacat properties

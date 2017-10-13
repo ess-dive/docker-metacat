@@ -61,7 +61,7 @@ The following environment variables are optional:
 **ADMINPASS_FILE:**  A file that contains the admin user password.  This file 
 must be mountied inside the container.
 
-**APP_PROPERTIES_FILE:** The file path where the local application property files 
+**APP_PROPERTIES_FILE:** (default /config/app.properties) The file path where the local application property files 
 are mounted in the container.
 
 
@@ -117,11 +117,10 @@ Create a file named `app.properties` with the content below:
 Run the docker container 
     
     docker run  \
-           -v ${PWD}/app.properties:/config/metacat.properties   \
+           -v ${PWD}/app.properties:/config/app.properties   \
            -p 8080:8080    \
            -e ADMIN=metacat-admin@localhost   \
            -e ADMINPASS=metacat-admin    \
-           -e APP_PROPERTIES_FILE=/config/metacat.properties \
            --name mn  -d\
            --network=metacat-network  \
            -it metacat:$VERSION 

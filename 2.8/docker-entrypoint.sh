@@ -4,34 +4,31 @@ set -e
 
 if [ "$1" = 'catalina.sh' ]; then
 
-    # Merge the application properties file and the metacat properties file
-    if [ ! -z "$APP_PROPERTIES_FILE" ];
+
+
+    DEFAULT_PROPERTIES_FILE=/usr/local/tomcat/webapps/metacat/WEB-INF/metacat.properties
+    APP_PROPERTIES_FILE=${APP_PROPERTIES_FILE:-/config/app.properties}
+
+
+    # Look for the properties file
+    if [ -s $APP_PROPERTIES_FILE ];
     then
+        apply_config.py $APP_PROPERTIES_FILE $DEFAULT_PROPERTIES_FILE
 
-        DEFAULT_PROPERTIES_FILE=/usr/local/tomcat/webapps/metacat/WEB-INF/metacat.properties
-        cat $DEFAULT_PROPERTIES_FILE
+        echo
+        echo '**********************************************************'
+        echo 'Merged $APP_PROPERTIES_FILE with '
+        echo 'default metacat.properties'
+        echo '***********************************************************'
+        echo
+    else
 
-        # Look for the properties file
-        if [ -s $APP_PROPERTIES_FILE ];
-        then
-            apply_config.py $APP_PROPERTIES_FILE $DEFAULT_PROPERTIES_FILE
-
-            echo
-            echo '**********************************************************'
-            echo 'Merged $APP_PROPERTIES_FILE with '
-            echo 'default metacat.properties'
-            echo '***********************************************************'
-            echo
-        else
-
-            echo "ERROR: The application properties file (APP_PROPERTIES_FILE) was empty"
-            echo "   or does not exist. Please check the $APP_PROPERTIES_FILE is"
-            echo "   exists in the container filesystem."
-            exit -2
-        fi
-
-
+        echo "ERROR: The application properties file (APP_PROPERTIES_FILE) was empty"
+        echo "   or does not exist. Please check the $APP_PROPERTIES_FILE is"
+        echo "   exists in the container filesystem."
+        exit -2
     fi
+
 
     #Make sure all default directories are available
     mkdir -p /var/metacat/data \
