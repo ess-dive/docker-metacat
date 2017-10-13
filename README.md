@@ -61,19 +61,17 @@ The following environment variables are optional:
 **ADMINPASS_FILE:**  A file that contains the admin user password.  This file 
 must be mountied inside the container.
 
+**APP_PROPERTIES_FILE:** The file path where the local application property files 
+are mounted in the container.
+
 
 Build the docker metacat image:
 
     VERSION_MAJOR_MINOR=2.8
     VERSION_PATCH=5
     ./build.sh $VERSION_MAJOR_MINOR $VERSION_PATCH
- 
-Get a copy of the `metacat.properties` file.
 
-    docker run --entrypoint "/bin/cat" metacat:$VERSION \
-            webapps/metacat/WEB-INF/metacat.properties > metacat.properties
-
-Edit the following properties:
+Create a file named `app.properties` with the content below:
     
     ######## Configuration utility section  ################
     
@@ -91,8 +89,6 @@ Edit the following properties:
     server.httpPort=8080
     server.httpSSLPort=8443
     
-    ...
-    
     ############### Application Values ############
 
     ## one of the few places where we use ANT tokens
@@ -100,9 +96,7 @@ Edit the following properties:
     application.deployDir=/usr/local/tomcat/webapps
     ## This is autodiscovered and populated by the config utility
     application.context=metacat
-    
-    ...
-    
+
     ############### Database Values ###############
     
     database.connectionURI=jdbc:postgresql://db/metacat
@@ -111,26 +105,23 @@ Edit the following properties:
     database.type=postgres
     database.driver=org.postgresql.Driver
     database.adapter=edu.ucsb.nceas.dbadapter.PostgresqlAdapter
-
-    ...
     
     ######## Authentication  ##############################################
-    ...
     auth.administrators=metacat-admin@localhost
     
     
     ######## Replication properties  #########################################
-    ...
     replication.logdir=/var/metacat/logs
 
 
 Run the docker container 
     
     docker run  \
-           -v ${PWD}/metacat.properties:/usr/local/tomcat/webapps/metacat/WEB-INF/metacat.properties   \
+           -v ${PWD}/app.properties:/config/metacat.properties   \
            -p 8080:8080    \
            -e ADMIN=metacat-admin@localhost   \
            -e ADMINPASS=metacat-admin    \
+           -e APP_PROPERTIES_FILE=/config/metacat.properties \
            --name mn  -d\
            --network=metacat-network  \
            -it metacat:$VERSION 
