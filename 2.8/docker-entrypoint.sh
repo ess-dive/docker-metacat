@@ -17,13 +17,14 @@ if [ "$1" = 'catalina.sh' ]; then
 
         echo
         echo '**********************************************************'
-        echo 'Merged $APP_PROPERTIES_FILE with '
+        echo "Merged $APP_PROPERTIES_FILE with "
         echo 'default metacat.properties'
         echo '***********************************************************'
         echo
-    else
+    elif [ "$APP_PROPERTIES_FILE" != "/config/app.properties" ];
+    then
 
-        echo "ERROR: The application properties file (APP_PROPERTIES_FILE) was empty"
+        echo "ERROR: The application properties file ($APP_PROPERTIES_FILE) was empty"
         echo "   or does not exist. Please check the $APP_PROPERTIES_FILE is"
         echo "   exists in the container filesystem."
         exit -2
@@ -113,6 +114,8 @@ if [ "$1" = 'catalina.sh' ]; then
         --data "loginAction=Login&configureType=login&processForm=true&password=${ADMINPASS}&username=${ADMIN}" \
         --cookie-jar ./cookie.txt http://localhost:8080/metacat/admin > login_result.txt 2>&1
 
+    [ $(grep "You must log in" login_result.txt| wc -l) -eq 0 ] || (echo "Administrator not logged in!!" && exit -4)
+
     ## If the DB needs to be updated run the migration scripts
     DB_CONFIGURED=`grep "configureType=database" login_result.txt | wc -l`
     if [ $DB_CONFIGURED -ne 0 ];
@@ -142,3 +145,5 @@ if [ "$1" = 'catalina.sh' ]; then
 fi
 
 exec tail -f /usr/local/tomcat/logs/catalina.out
+
+
