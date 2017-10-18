@@ -31,32 +31,39 @@ if [ "$1" = 'catalina.sh' ]; then
     fi
 
 
+
     #Make sure all default directories are available
     mkdir -p /var/metacat/data \
         /var/metacat/inline-data \
         /var/metacat/documents \
         /var/metacat/temporary \
         /var/metacat/logs \
-        /var/metacat/solr-home
 
-    # Copy the default solr conf files
-    SOLR_CONF_DEFAULT_LOCATION=./webapps/metacat-index/WEB-INF/classes/solr-home/
-    SOLR_CONF_LOCATION=/var/metacat/solr-home
-    SOLR_CONF_FILES=`find ${SOLR_CONF_DEFAULT_LOCATION}`
-    for f in ${SOLR_CONF_FILES[@]};
-    do
-        NEW_FILE=${f#*${SOLR_CONF_DEFAULT_LOCATION}}
-        if [ "$NEW_FILE" != "" ];
-        then
-            NEW_DIR=$(dirname $NEW_FILE)
-            if [ ! -f $SOLR_CONF_LOCATION/$NEW_FILE ] && [ -f $f ];
+
+    # Initialize the solr home directory
+    if [ ! -d /var/metacat/solr-home ];
+    then
+        mkdir -p /var/metacat/solr-home
+
+        # Copy the default solr conf files
+        SOLR_CONF_DEFAULT_LOCATION=./webapps/metacat-index/WEB-INF/classes/solr-home/
+        SOLR_CONF_LOCATION=/var/metacat/solr-home
+        SOLR_CONF_FILES=`find ${SOLR_CONF_DEFAULT_LOCATION}`
+        for f in ${SOLR_CONF_FILES[@]};
+        do
+            NEW_FILE=${f#*${SOLR_CONF_DEFAULT_LOCATION}}
+            if [ "$NEW_FILE" != "" ];
             then
-                echo "Copying Solr configuraiton file: $SOLR_CONF_LOCATION/$NEW_FILE"
-                mkdir -p $SOLR_CONF_LOCATION/$NEW_DIR
-                cp $f $SOLR_CONF_LOCATION/$NEW_FILE
+                NEW_DIR=$(dirname $NEW_FILE)
+                if [ ! -f $SOLR_CONF_LOCATION/$NEW_FILE ] && [ -f $f ];
+                then
+                    echo "Copying Solr configuraiton file: $SOLR_CONF_LOCATION/$NEW_FILE"
+                    mkdir -p $SOLR_CONF_LOCATION/$NEW_DIR
+                    cp $f $SOLR_CONF_LOCATION/$NEW_FILE
+                fi
             fi
-        fi
-    done
+        done
+    fi
 
 
     # If there is an admin/password set and it does not exist in the passwords file

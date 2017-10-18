@@ -25,6 +25,7 @@ ENTRYPOINT ["docker-entrypoint.sh"]
 
 EXPOSE 8080
 EXPOSE 8009
+EXPOSE 8443
 CMD ["catalina.sh","start"]
 
 
