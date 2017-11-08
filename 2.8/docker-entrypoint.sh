@@ -4,9 +4,26 @@ set -e
 
 if [ "$1" = 'catalina.sh' ]; then
 
+    METACAT_DEFAULT_WAR=/usr/local/tomcat/webapps/metacat.war
+    METACAT_DIR=/usr/local/tomcat/webapps/${METACAT_APP_CONTEXT}
+    METACAT_WAR=${METACAT_DIR}.war
 
+    # Check the context
+    if [ "${METACAT_WAR}" != "${METACAT_DEFAULT_WAR}" ] &&
+       [ -f $METACAT_DEFAULT_WAR ];
+    then
+        # Move the application to match the context
+        echo "Changing context to ${METACAT_APP_CONTEXT}"
+        mv $METACAT_DEFAULT_WAR $METACAT_WAR
+    fi
 
-    DEFAULT_PROPERTIES_FILE=/usr/local/tomcat/webapps/metacat/WEB-INF/metacat.properties
+    # Expand the WAR file
+    if [ ! -d $METACAT_DIR ];
+    then
+        unzip  $METACAT_WAR -d $METACAT_DIR
+    fi
+
+    DEFAULT_PROPERTIES_FILE=${METACAT_DIR}/WEB-INF/metacat.properties
     APP_PROPERTIES_FILE=${APP_PROPERTIES_FILE:-/config/app.properties}
 
 
@@ -89,7 +106,7 @@ if [ "$1" = 'catalina.sh' ]; then
 
             ## Note: the Java bcrypt library only supports '2a' format hashes, so override the default python behavior
             ## so that the hases created start with '2a' rather than '2y'
-            cd /usr/local/tomcat/webapps/metacat/WEB-INF/scripts/bash
+            cd ${METACAT_DIR}/WEB-INF/scripts/bash
             PASS=`python -c "import bcrypt; print bcrypt.hashpw('$ADMINPASS', bcrypt.gensalt(10,prefix='2a'))"`
             ./authFileManager.sh useradd -h $PASS -dn  "$ADMIN"
             cd /usr/local/tomcat
@@ -119,9 +136,9 @@ if [ "$1" = 'catalina.sh' ]; then
     # Login to Metacat Admin and start a session (cookie.txt)
     curl -X POST \
         --data "loginAction=Login&configureType=login&processForm=true&password=${ADMINPASS}&username=${ADMIN}" \
-        --cookie-jar ./cookie.txt http://localhost:8080/metacat/admin > login_result.txt 2>&1
+        --cookie-jar ./cookie.txt http://localhost:8080/${METACAT_APP_CONTEXT}/admin > login_result.txt 2>&1
 
-    [ $(grep "You must log in" login_result.txt| wc -l) -eq 0 ] || (echo "Administrator not logged in!!" && exit -4)
+    #[ $(grep "You must log in" login_result.txt| wc -l) -eq 0 ] || (echo "Administrator not logged in!!" && exit -4)
 
     ## If the DB needs to be updated run the migration scripts
     DB_CONFIGURED=`grep "configureType=database" login_result.txt | wc -l`
@@ -129,15 +146,15 @@ if [ "$1" = 'catalina.sh' ]; then
     then
 
         # Run the database initialization to create or upgrade tables
-        # /metacat/admin?configureType=database must have an authenticated session, then run
+        # /${METACAT_APP_CONTEXT}/admin?configureType=database must have an authenticated session, then run
         curl -X POST --cookie ./cookie.txt \
             --data "configureType=database&processForm=true" \
-            http://localhost:8080/metacat/admin > /dev/null 2>&1
+            http://localhost:8080/${METACAT_APP_CONTEXT}/admin > /dev/null 2>&1
 
         # Validate the database should be configured
         curl -X POST --cookie ./cookie.txt \
             --data "configureType=configure&processForm=false" \
-            http://localhost:8080/metacat/admin > /dev/null 2>&1
+            http://localhost:8080/${METACAT_APP_CONTEXT}/admin > /dev/null 2>&1
 
         echo
         echo '***********************************'

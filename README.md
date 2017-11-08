@@ -92,7 +92,6 @@ Create a file named `app.properties` with the content below:
     ############### Application Values ############
 
     ## one of the few places where we use ANT tokens
-    application.metacatVersion=<version>
     application.deployDir=/usr/local/tomcat/webapps
     ## This is autodiscovered and populated by the config utility
     application.context=metacat
@@ -118,10 +117,10 @@ Run the docker container
     
     docker run  \
            -v ${PWD}/app.properties:/config/app.properties   \
-           -p 8080:8080    \
+           -p 8080:8080     \
            -e ADMIN=metacat-admin@localhost   \
            -e ADMINPASS=metacat-admin    \
-           --name mn  -d\
+           --name mn  -d \
            --network=metacat-network  \
            -it metacat:$VERSION 
            
