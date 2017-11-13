@@ -8,6 +8,9 @@ if [ "$1" = 'catalina.sh' ]; then
     METACAT_DIR=/usr/local/tomcat/webapps/${METACAT_APP_CONTEXT}
     METACAT_WAR=${METACAT_DIR}.war
 
+    # Expand the metacat-index.war
+    unzip webapps/metacat-index.war -d webapps/metacat-index
+
     # Check the context
     if [ "${METACAT_WAR}" != "${METACAT_DEFAULT_WAR}" ] &&
        [ -f $METACAT_DEFAULT_WAR ];
@@ -108,7 +111,7 @@ if [ "$1" = 'catalina.sh' ]; then
             ## so that the hases created start with '2a' rather than '2y'
             cd ${METACAT_DIR}/WEB-INF/scripts/bash
             PASS=`python -c "import bcrypt; print bcrypt.hashpw('$ADMINPASS', bcrypt.gensalt(10,prefix='2a'))"`
-            ./authFileManager.sh useradd -h $PASS -dn  "$ADMIN"
+            bash ./authFileManager.sh useradd -h $PASS -dn  "$ADMIN"
             cd /usr/local/tomcat
 
             echo
