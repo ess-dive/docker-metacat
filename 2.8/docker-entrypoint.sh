@@ -9,7 +9,10 @@ if [ "$1" = 'catalina.sh' ]; then
     METACAT_WAR=${METACAT_DIR}.war
 
     # Expand the metacat-index.war
-    unzip webapps/metacat-index.war -d webapps/metacat-index
+    if [ ! -d webapps/metacat-index ];
+    then
+      unzip webapps/metacat-index.war -d webapps/metacat-index
+    fi
 
     # Check the context
     if [ "${METACAT_WAR}" != "${METACAT_DEFAULT_WAR}" ] &&
