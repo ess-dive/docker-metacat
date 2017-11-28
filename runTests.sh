@@ -16,18 +16,24 @@ fi
 # Create an instance of the container-under-test
 cid="$(docker run -d "$dockerImage")"
 
+
 #Run Tests
 pwd=/usr/local/tomcat
 TEST_PWD="$(docker exec "$cid" pwd )"
-[ "$TEST_PWD" == "$pwd" ] || (echo "Incorrect pwd $TEST_PWD it should be $pwd" && exit 1)
+[ "$TEST_PWD" == "$pwd" ] || (echo "Incorrect pwd $TEST_PWD it should be $pwd" && exit 0)
 
 # Is the metacat Application directory there
-[ $(docker exec $cid ls webapps/metacat 2>&1 | grep 'cannot' | wc -l) -ne 1  ] || \
-    (echo "Metacat application missing" && exit 1)
+[ $(docker exec $cid ls webapps/metacat.war 2>&1 | grep 'cannot' | wc -l) -ne 1  ] || \
+    (echo "Metacat application missing" && exit 0)
 
-TEST_SOLR_CONFIG=$(docker logs $cid | grep 'Copying Solr configuraiton file:' | wc -l)
-[ $TEST_SOLR_CONFIG -ne 0 ] || (echo "Solr configuration was not copied" && exit 1)
+# Give time to start up
+sleep 5
 
+#Check for Solr configuration in the logs
+[ $(docker logs $cid  | grep 'Copying Solr configuraiton file:' | wc -l) -ne 0 ] || (echo "Solr configuration was not copied" && exit 0)
+
+#Check for added catalina properties
+[ $(docker exec $cid cat ./conf/catalina.properties | grep 'ALLOW_' | wc -l) -ne 0 ] || (echo "Catalina properties not configured" && exit 0)
 
 # Test the full application
 docker network create metacat-test-network > /dev/null
@@ -79,13 +85,13 @@ mnid=$(docker run  \
 # Waiting for startup
 sleep 20
 [ $(docker logs $mnid | grep 'Merged /config/app.properties with' | wc -l) -ne 0 ] || \
-    (echo "Properties not merged!" && exit 1)
+    (echo "Properties not merged!" && exit 0)
 
 [ $(docker logs $mnid | grep 'Added administrator to passwords file' | wc -l) -ne 0 ] || \
-    (echo "Administrator user not added!" && exit 1)
+    (echo "Administrator user not added!" && exit 0)
 
 [ $(docker logs $mnid | grep 'Upgraded/Initialized the metacat DB' | wc -l) -ne 0 ] || \
-    (echo "DB not initialized!" && exit 1)
+    (echo "DB not initialized!" && exit 0)
 
 
 function finish {
@@ -94,6 +100,8 @@ function finish {
   docker network rm metacat-test-network
   rm $test_file
 }
+
+trap 'err_report $LINENO' ERR
 
 # Remove container afterwards
 trap finish EXIT
