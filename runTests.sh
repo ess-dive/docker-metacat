@@ -20,20 +20,20 @@ cid="$(docker run -d "$dockerImage")"
 #Run Tests
 pwd=/usr/local/tomcat
 TEST_PWD="$(docker exec "$cid" pwd )"
-[ "$TEST_PWD" == "$pwd" ] || (echo "Incorrect pwd $TEST_PWD it should be $pwd" && exit 0)
+[ "$TEST_PWD" == "$pwd" ] || (echo "Incorrect pwd $TEST_PWD it should be $pwd" && exit 1)
 
 # Is the metacat Application directory there
 [ $(docker exec $cid ls webapps/metacat.war 2>&1 | grep 'cannot' | wc -l) -ne 1  ] || \
-    (echo "Metacat application missing" && exit 0)
+    (echo "Metacat application missing" && exit 1)
 
 # Give time to start up
 sleep 5
 
 #Check for Solr configuration in the logs
-[ $(docker logs $cid  | grep 'Copying Solr configuraiton file:' | wc -l) -ne 0 ] || (echo "Solr configuration was not copied" && exit 0)
+[ $(docker logs $cid  | grep 'Copying Solr configuraiton file:' | wc -l) -ne 0 ] || (echo "Solr configuration was not copied" && exit 1)
 
 #Check for added catalina properties
-[ $(docker exec $cid cat ./conf/catalina.properties | grep 'ALLOW_' | wc -l) -ne 0 ] || (echo "Catalina properties not configured" && exit 0)
+[ $(docker exec $cid cat ./conf/catalina.properties | grep 'ALLOW_' | wc -l) -ne 0 ] || (echo "Catalina properties not configured" && exit 1)
 
 # Test the full application
 docker network create metacat-test-network > /dev/null
@@ -77,6 +77,7 @@ mnid=$(docker run  \
        -p 8080:8080    \
        -e ADMIN=metacat-admin@localhost   \
        -e ADMINPASS=metacat-admin    \
+       -e METACAT_APP_CONTEXT=foobar \
        -d \
        --network=metacat-test-network  \
        -it $dockerImage)
@@ -85,13 +86,18 @@ mnid=$(docker run  \
 # Waiting for startup
 sleep 20
 [ $(docker logs $mnid | grep 'Merged /config/app.properties with' | wc -l) -ne 0 ] || \
-    (echo "Properties not merged!" && exit 0)
+    (echo "Properties not merged!" && exit 1)
 
 [ $(docker logs $mnid | grep 'Added administrator to passwords file' | wc -l) -ne 0 ] || \
-    (echo "Administrator user not added!" && exit 0)
+    (echo "Administrator user not added!" && exit 1)
 
 [ $(docker logs $mnid | grep 'Upgraded/Initialized the metacat DB' | wc -l) -ne 0 ] || \
-    (echo "DB not initialized!" && exit 0)
+    (echo "DB not initialized!" && exit 1)
+
+#Check for modified web.xml
+[ $(docker exec $mnid cat ./webapps/foobar/WEB-INF/web.xml | grep 'foobar' | wc -l) -ne 0 ] || (echo "Application context not changed in web.xml" && exit 1)
+[ $(docker exec $mnid cat ./webapps/metacat-index/WEB-INF/web.xml | grep 'foobar' | wc -l) -ne 0 ] || (echo "Application context not changed in metacat-index web.xml" && exit 1)
+
 
 
 function finish {

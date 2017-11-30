@@ -4,6 +4,7 @@ set -e
 
 if [ "$1" = 'catalina.sh' ]; then
 
+
     METACAT_DEFAULT_WAR=/usr/local/tomcat/webapps/metacat.war
     METACAT_DIR=/usr/local/tomcat/webapps/${METACAT_APP_CONTEXT}
     METACAT_WAR=${METACAT_DIR}.war
@@ -21,6 +22,7 @@ if [ "$1" = 'catalina.sh' ]; then
         # Move the application to match the context
         echo "Changing context to ${METACAT_APP_CONTEXT}"
         mv $METACAT_DEFAULT_WAR $METACAT_WAR
+
     fi
 
     # Expand the WAR file
@@ -28,6 +30,9 @@ if [ "$1" = 'catalina.sh' ]; then
     then
         unzip  $METACAT_WAR -d $METACAT_DIR
     fi
+
+    # change the context in the web.xml file
+    apply_context.py $METACAT_DIR/WEB-INF/web.xml metacat ${METACAT_APP_CONTEXT}
 
     DEFAULT_PROPERTIES_FILE=${METACAT_DIR}/WEB-INF/metacat.properties
     APP_PROPERTIES_FILE=${APP_PROPERTIES_FILE:-/config/app.properties}
