@@ -2,16 +2,15 @@
 
 set -e
 
-if [ -z $1 ] || [ -z $2 ];
+if [ -z $1 ] ;
   then
-    echo "Usage: $0 <version_major_minor> <version_patch>"
+    echo "Usage: $0 <version>"
     exit
 fi
 
 
-VERSION_MAJOR_MINOR=$1
-VERSION_PATCH=$2
-VERSION=$VERSION_MAJOR_MINOR.$VERSION_PATCH
+VERSION=$1
+VERSION_MAJOR_MINOR=${VERSION%.*}
 
 if [ ! -d $BUILD_DIR ];
 then

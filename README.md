@@ -67,9 +67,8 @@ are mounted in the container.
 
 Build the docker metacat image:
 
-    VERSION_MAJOR_MINOR=2.8
-    VERSION_PATCH=5
-    ./build.sh $VERSION_MAJOR_MINOR $VERSION_PATCH
+    VERSION=2.8.5
+    ./build.sh $VERSION
 
 Create a file named `app.properties` with the content below:
     
