@@ -36,7 +36,28 @@ if [ "$1" = 'catalina.sh' ]; then
 
     DEFAULT_PROPERTIES_FILE=${METACAT_DIR}/WEB-INF/metacat.properties
     APP_PROPERTIES_FILE=${APP_PROPERTIES_FILE:-/config/app.properties}
+    METACATUI_SKIN_PATH=${METACATUI_SKIN_PATH:-/config/skin}
 
+
+    # Look for the metacat ui skin directory
+    if [ -d ${METACATUI_SKIN_PATH} ];
+    then
+        echo
+        echo '**********************************************************'
+        echo "Copying skin files from  ${METACATUI_SKIN_PATH}  "
+        echo '***********************************************************'
+        echo
+        # copy skin files in the MetacatUI skins directory
+        find ${METACATUI_SKIN_PATH} -type f | sed "s|${METACATUI_SKIN_PATH}||" \
+            | xargs -I '{}' cp -vf /config/skin/'{}'  $METACAT_DIR/style/skins/metacatui/'{}'
+
+        echo
+        echo '**********************************************************'
+        echo "Copied skin files ${METACATUI_SKIN_PATH}  "
+        echo '***********************************************************'
+        echo
+
+    fi
 
     # Look for the properties file
     if [ -s $APP_PROPERTIES_FILE ];
