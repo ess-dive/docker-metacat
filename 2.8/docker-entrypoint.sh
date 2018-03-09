@@ -2,7 +2,7 @@
 
 set -e
 
-if [ "$1" = 'catalina.sh' ]; then
+if [ "$1" = 'bin/catalina.sh' ]; then
 
 
     METACAT_DEFAULT_WAR=/usr/local/tomcat/webapps/metacat.war
@@ -85,6 +85,13 @@ if [ "$1" = 'catalina.sh' ]; then
         exit -2
     fi
 
+    # Set the metacat user as the owner of metacat
+    chown -R :metacat /usr/local/tomcat/conf
+    chmod +r+g conf/*
+    chown -R metacat:metacat webapps logs temp work
+
+    ## Using Here document to create directories as metacat
+    su metacat <<EOSU
     #Make sure all default directories are available
     mkdir -p /var/metacat/data \
         /var/metacat/inline-data \
@@ -152,10 +159,14 @@ if [ "$1" = 'catalina.sh' ]; then
         fi
     fi
 
+    echo
+    echo '**************************************'
+    echo "Starting Tomcat"
+    echo '**************************************'
+    echo
 
     # Start tomcat
     $@ > /dev/null 2>&1
-
 
     # Give time for tomcat to start
     echo
@@ -166,27 +177,42 @@ if [ "$1" = 'catalina.sh' ]; then
     echo
     sleep 5
 
+EOSU
 
     # Login to Metacat Admin and start a session (cookie.txt)
+    echo
+    echo '**************************************'
+    echo "Login to Metacat Admin and start a "
+    echo "session (cookie.txt)"
+    echo '**************************************'
+    echo
+
     curl -X POST \
         --data "loginAction=Login&configureType=login&processForm=true&password=${ADMINPASS}&username=${ADMIN}" \
-        --cookie-jar ./cookie.txt http://localhost:8080/${METACAT_APP_CONTEXT}/admin > login_result.txt 2>&1
+        --cookie-jar /tmp/cookie.txt http://localhost:8080/${METACAT_APP_CONTEXT}/admin > /tmp/login_result.txt 2>&1
 
-    #[ $(grep "You must log in" login_result.txt| wc -l) -eq 0 ] || (echo "Administrator not logged in!!" && exit -4)
+    # Test the the admin logged in successfully
+    [ $(grep "User logged in as:" login_result.txt| wc -l) -eq 0 ] || (echo "Administrator not logged in!!" && exit -4)
+
+    echo
+    echo '**************************************'
+    echo "Logged in to Metacat"
+    echo '**************************************'
+    echo
 
     ## If the DB needs to be updated run the migration scripts
-    DB_CONFIGURED=`grep "configureType=database" login_result.txt | wc -l`
+    DB_CONFIGURED=`grep "configureType=database" /tmp/login_result.txt | wc -l`
     if [ $DB_CONFIGURED -ne 0 ];
     then
 
         # Run the database initialization to create or upgrade tables
         # /${METACAT_APP_CONTEXT}/admin?configureType=database must have an authenticated session, then run
-        curl -X POST --cookie ./cookie.txt \
+        curl -X POST --cookie /tmp/cookie.txt \
             --data "configureType=database&processForm=true" \
             http://localhost:8080/${METACAT_APP_CONTEXT}/admin > /dev/null 2>&1
 
         # Validate the database should be configured
-        curl -X POST --cookie ./cookie.txt \
+        curl -X POST --cookie /tmp/cookie.txt \
             --data "configureType=configure&processForm=false" \
             http://localhost:8080/${METACAT_APP_CONTEXT}/admin > /dev/null 2>&1
 
@@ -195,10 +221,21 @@ if [ "$1" = 'catalina.sh' ]; then
         echo "Upgraded/Initialized the metacat DB"
         echo '***********************************'
         echo
+    else
+        echo
+        echo '**************************************'
+        echo "Metacat is already configured"
+        echo '**************************************'
+        echo
     fi
 
     # Remove the session cookie
-    rm cookie.txt login_result.txt
+    rm -f /tmp/cookie.txt /tmp/login_result.txt
+    echo
+    echo '**************************************'
+    echo "END"
+    echo '**************************************'
+    echo
 
 fi
 

@@ -34,16 +34,13 @@ ENTRYPOINT ["docker-entrypoint.sh"]
 # create unprivileged user
 RUN groupadd -g ${METACAT_GID}  metacat && \
     useradd -u ${METACAT_UID} -g ${METACAT_GID} -c 'Metacat User'  --no-create-home metacat && \
-    mkdir -p /var/metacat && \
-    chown -R metacat:metacat /usr/local/tomcat /var/metacat
+    mkdir -p /var/metacat
 
 EXPOSE 8080
 EXPOSE 8009
 EXPOSE 8443
 
-USER metacat
-
-CMD ["catalina.sh","start"]
+CMD ["bin/catalina.sh","start"]
 
 
 
