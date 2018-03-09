@@ -65,6 +65,12 @@ if [ "$1" = 'bin/catalina.sh' ]; then
         export DB_PASSWORD=`cat $DB_PASSWORD_FILE`
     fi
 
+    # Look for the password file
+    if [  ! -z "$ADMINPASS_FILE"  ] && [ -s $ADMINPASS_FILE ];then
+        ADMINPASS=`cat $ADMINPASS_FILE`
+    fi
+
+
     # Look for the properties file
     if [ -s $APP_PROPERTIES_FILE ];
     then
@@ -85,7 +91,7 @@ if [ "$1" = 'bin/catalina.sh' ]; then
         exit -2
     fi
 
-    # Set the metacat user as the owner of metacat
+    # Set the metacat user as the owner of webapps, logs, temp and work
     chown -R :metacat /usr/local/tomcat/conf
     chmod +r+g conf/*
     chown -R metacat:metacat webapps logs temp work
@@ -127,11 +133,6 @@ if [ "$1" = 'bin/catalina.sh' ]; then
     if [ ! -z "$ADMIN" ];
     then
         USER_PWFILE="/var/metacat/users/password.xml"
-
-        # Look for the password file
-        if [  ! -z "$ADMINPASS_FILE"  ] && [ -s $ADMINPASS_FILE ];then
-            ADMINPASS=`cat $ADMINPASS_FILE`
-        fi
 
         if [ -z "$ADMINPASS" ];
         then
