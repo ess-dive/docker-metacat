@@ -4,10 +4,22 @@ set -e
 
 if [ -z $1 ] ;
   then
-    echo "Usage: $0 <version>"
+    echo "Usage: $0 <version> (<uid> <gid>)"
     exit
 fi
 
+BUILD_ARGS=""
+if [ ! -z $2 ] ;
+then
+
+    BUILD_ARGS="${BUILD_ARGS} --build-arg METACAT_UID=$2"
+fi
+
+if [ ! -z $3 ] ;
+then
+
+    BUILD_ARGS="${BUILD_ARGS} --build-arg METACAT_GID=$3"
+fi
 
 VERSION=$1
 VERSION_MAJOR_MINOR=${VERSION%.*}
@@ -23,4 +35,13 @@ METACAT=metacat-bin-${VERSION}
 ARCHIVE=${METACAT}.tar.gz
 wget  -c http://knb.ecoinformatics.org/software/dist/${ARCHIVE} -O ${VERSION_MAJOR_MINOR}/${ARCHIVE}
 
-docker build --build-arg METACAT_VERSION=$VERSION -t metacat:$VERSION $VERSION_MAJOR_MINOR
+BUILD_ARGS="${BUILD_ARGS} --build-arg METACAT_VERSION=${VERSION}"
+
+if [ ! -f  ${VERSION_MAJOR_MINOR}/${ARCHIVE} ];
+then
+
+    wget  -c http://knb.ecoinformatics.org/software/dist/${ARCHIVE} -O ${VERSION_MAJOR_MINOR}/${ARCHIVE}
+fi
+
+echo "docker build ${BUILD_ARGS} -t metacat:$VERSION $VERSION_MAJOR_MINOR"
+docker build ${BUILD_ARGS} -t metacat:${VERSION} ${VERSION_MAJOR_MINOR}

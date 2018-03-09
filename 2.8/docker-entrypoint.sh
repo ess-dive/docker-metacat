@@ -59,6 +59,12 @@ if [ "$1" = 'catalina.sh' ]; then
 
     fi
 
+    # Look for dbpassword file
+    if [  ! -z "$DB_PASSWORD_FILE"  ] && [ -s $DB_PASSWORD_FILE ];
+    then
+        export DB_PASSWORD=`cat $DB_PASSWORD_FILE`
+    fi
+
     # Look for the properties file
     if [ -s $APP_PROPERTIES_FILE ];
     then
@@ -79,14 +85,12 @@ if [ "$1" = 'catalina.sh' ]; then
         exit -2
     fi
 
-
-
     #Make sure all default directories are available
     mkdir -p /var/metacat/data \
         /var/metacat/inline-data \
         /var/metacat/documents \
         /var/metacat/temporary \
-        /var/metacat/logs \
+        /var/metacat/logs
 
 
     # Initialize the solr home directory
@@ -97,20 +101,16 @@ if [ "$1" = 'catalina.sh' ]; then
         # Copy the default solr conf files
         SOLR_CONF_DEFAULT_LOCATION=./webapps/metacat-index/WEB-INF/classes/solr-home/
         SOLR_CONF_LOCATION=/var/metacat/solr-home
-        SOLR_CONF_FILES=`find ${SOLR_CONF_DEFAULT_LOCATION}`
+        SOLR_CONF_FILES=`cd ${SOLR_CONF_DEFAULT_LOCATION} && find . `
         for f in ${SOLR_CONF_FILES[@]};
         do
-            NEW_FILE=${f#*${SOLR_CONF_DEFAULT_LOCATION}}
-            if [ "$NEW_FILE" != "" ];
+            if [ ! -f $SOLR_CONF_LOCATION/$f ] && [ -f $f ];
             then
-                NEW_DIR=$(dirname $NEW_FILE)
-                if [ ! -f $SOLR_CONF_LOCATION/$NEW_FILE ] && [ -f $f ];
-                then
-                    echo "Copying Solr configuraiton file: $SOLR_CONF_LOCATION/$NEW_FILE"
-                    mkdir -p $SOLR_CONF_LOCATION/$NEW_DIR
-                    cp $f $SOLR_CONF_LOCATION/$NEW_FILE
-                fi
+                echo "Copying Solr configuraiton file: $SOLR_CONF_LOCATION/$f"
+                mkdir -p $SOLR_CONF_LOCATION/$NEW_DIR
+                cp ${SOLR_CONF_DEFAULT_LOCATION}/$f $SOLR_CONF_LOCATION/$f
             fi
+
         done
     fi
 
@@ -152,8 +152,10 @@ if [ "$1" = 'catalina.sh' ]; then
         fi
     fi
 
+
     # Start tomcat
     $@ > /dev/null 2>&1
+
 
     # Give time for tomcat to start
     echo
