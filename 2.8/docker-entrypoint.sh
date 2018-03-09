@@ -91,48 +91,53 @@ if [ "$1" = 'bin/catalina.sh' ]; then
         exit -2
     fi
 
-    # Set the metacat user as the owner of webapps, logs, temp and work
-    chown -R :metacat /usr/local/tomcat/conf
-    chmod +r+g conf/*
-    chown -R metacat:metacat webapps logs temp work
+    # Set the metacat user as the owner of webapps
+    chown -R metacat:metacat webapps
 
-    ## Using Here document to create directories as metacat
-    su metacat <<EOSU
+    # Initialize the solr home directory
+    if [ ! -d /var/metacat/solr-home ];
+    then
+
+        # Setup env  for Here Document
+        SOLR_CONF_LOCATION=/var/metacat/solr-home
+        SOLR_CONF_DEFAULT_LOCATION=/usr/local/tomcat/webapps/metacat-index/WEB-INF/classes/solr-home
+        USER_PWFILE="/var/metacat/users/password.xml"
+        SOLR_CONF_FILES=`su metacat /usr/bin/bash -c "cd ${SOLR_CONF_DEFAULT_LOCATION} && find ."`
+
+        echo "INFO SOLR_CONF_LOCATION ${SOLR_CONF_LOCATION}"
+        su metacat /usr/bin/bash -c "mkdir -p $SOLR_CONF_LOCATION"
+
+        for SOLR_FILE in ${SOLR_CONF_FILES[@]}
+        do
+        NEW_DIR=$(dirname $SOLR_CONF_LOCATION/$SOLR_FILE)
+
+# Execute as metacat
+su metacat <<EOSU
+            mkdir -p $NEW_DIR
+            if [ -f $SOLR_CONF_DEFAULT_LOCATION/$SOLR_FILE ] && [ ! -f $SOLR_CONF_LOCATION/$SOLR_FILE ];
+            then
+                echo "cp ${SOLR_CONF_DEFAULT_LOCATION}/$SOLR_FILE $SOLR_CONF_LOCATION/$SOLR_FILE"
+                cp ${SOLR_CONF_DEFAULT_LOCATION}/$SOLR_FILE $SOLR_CONF_LOCATION/$SOLR_FILE
+            fi
+EOSU
+        done
+    fi
+
+## Using Here document to create directories as metacat
+su metacat <<EOSU
     #Make sure all default directories are available
     mkdir -p /var/metacat/data \
         /var/metacat/inline-data \
         /var/metacat/documents \
         /var/metacat/temporary \
         /var/metacat/logs
-
-
-    # Initialize the solr home directory
-    if [ ! -d /var/metacat/solr-home ];
-    then
-        mkdir -p /var/metacat/solr-home
-
-        # Copy the default solr conf files
-        SOLR_CONF_DEFAULT_LOCATION=./webapps/metacat-index/WEB-INF/classes/solr-home/
-        SOLR_CONF_LOCATION=/var/metacat/solr-home
-        SOLR_CONF_FILES=`cd ${SOLR_CONF_DEFAULT_LOCATION} && find . `
-        for f in ${SOLR_CONF_FILES[@]};
-        do
-            if [ ! -f $SOLR_CONF_LOCATION/$f ] && [ -f $f ];
-            then
-                echo "Copying Solr configuraiton file: $SOLR_CONF_LOCATION/$f"
-                mkdir -p $SOLR_CONF_LOCATION/$NEW_DIR
-                cp ${SOLR_CONF_DEFAULT_LOCATION}/$f $SOLR_CONF_LOCATION/$f
-            fi
-
-        done
-    fi
+EOSU
 
 
     # If there is an admin/password set and it does not exist in the passwords file
     # set it
     if [ ! -z "$ADMIN" ];
     then
-        USER_PWFILE="/var/metacat/users/password.xml"
 
         if [ -z "$ADMINPASS" ];
         then
@@ -141,14 +146,23 @@ if [ "$1" = 'bin/catalina.sh' ]; then
             exit -1
         fi
 
+# Execute as metacat
+su metacat <<EOSU
+        echo
+        echo '**************************************'
+        echo 'Adding administrator to passwords file'
+        echo '**************************************'
+        echo
+
         # look specifically for the user password file, as it is expected if the configuration is completed
-        if [ ! -s $USER_PWFILE ] || [ $(grep $ADMIN /var/metacat/users/password.xml | wc -l) -eq 0  ]; then
+        if [ ! -s $USER_PWFILE ] || [ ! -f /var/metacat/users/password.xml ] || [ $(grep $ADMIN /var/metacat/users/password.xml | wc -l) -eq 0  ]; then
+
+            echo "cd ${METACAT_DIR}/WEB-INF/scripts/bash"
+            cd ${METACAT_DIR}/WEB-INF/scripts/bash
 
             ## Note: the Java bcrypt library only supports '2a' format hashes, so override the default python behavior
-            ## so that the hases created start with '2a' rather than '2y'
-            cd ${METACAT_DIR}/WEB-INF/scripts/bash
-            PASS=`python -c "import bcrypt; print bcrypt.hashpw('$ADMINPASS', bcrypt.gensalt(10,prefix='2a'))"`
-            bash ./authFileManager.sh useradd -h $PASS -dn  "$ADMIN"
+            ## so that the hases created start with '2a' rather than '2b'
+            bash ./authFileManager.sh useradd -h '`python -c "import bcrypt; print bcrypt.hashpw('$ADMINPASS', bcrypt.gensalt(10,prefix='2a'))"`' -dn "$ADMIN"
             cd /usr/local/tomcat
 
             echo
@@ -158,7 +172,19 @@ if [ "$1" = 'bin/catalina.sh' ]; then
             echo
 
         fi
+EOSU
+
     fi
+
+# Execute as metacat
+su metacat <<EOSU
+    echo
+    echo '**************************************'
+    echo "Setting umask"
+    echo '**************************************'
+    echo
+    umask 0007
+    umask
 
     echo
     echo '**************************************'
@@ -193,7 +219,7 @@ EOSU
         --cookie-jar /tmp/cookie.txt http://localhost:8080/${METACAT_APP_CONTEXT}/admin > /tmp/login_result.txt 2>&1
 
     # Test the the admin logged in successfully
-    [ $(grep "User logged in as:" login_result.txt| wc -l) -eq 0 ] || (echo "Administrator not logged in!!" && exit -4)
+    [ -f /tmp/login_result.txt ] && [ $(grep "User logged in as:" /tmp/login_result.txt| wc -l) -eq 1 ] || (echo "Administrator not logged in!!" && exit -4)
 
     echo
     echo '**************************************'
