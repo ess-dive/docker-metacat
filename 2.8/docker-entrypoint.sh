@@ -266,6 +266,6 @@ EOSU
 
 fi
 
-exec tail -f /usr/local/tomcat/logs/catalina.out
+exec su metacat -c 'tail -f /usr/local/tomcat/logs/catalina.out'
 
 
