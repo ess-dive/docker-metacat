@@ -91,15 +91,28 @@ if [ "$1" = 'bin/catalina.sh' ]; then
         exit -2
     fi
 
+
     # Set the metacat user as the owner of webapps
     chown -R metacat:metacat webapps
 
+
+    # Make sure all default directories are available and owned by metacat
+    [ `stat -c '%U:%G' /var/metacat`      = 'metacat:metacat' ] || chown metacat:metacat /var/metacat
+    [ `stat -c '%U:%G' /var/metacat-fast` = 'metacat:metacat' ] || chown metacat:metacat /var/metacat-fast
+    su metacat <<EOSU
+    mkdir -p /var/metacat/data \
+        /var/metacat/inline-data \
+        /var/metacat/documents \
+        /var/metacat/temporary \
+        /var/metacat/logs
+EOSU
+
     # Initialize the solr home directory
-    if [ ! -d /var/metacat/solr-home ];
+    SOLR_CONF_LOCATION=/var/metacat-fast/solr-home
+    if [ ! -d ${SOLR_CONF_LOCATION} ];
     then
 
-        # Setup env  for Here Document
-        SOLR_CONF_LOCATION=/var/metacat/solr-home
+        # Setup env for Here Document
         SOLR_CONF_DEFAULT_LOCATION=/usr/local/tomcat/webapps/metacat-index/WEB-INF/classes/solr-home
         USER_PWFILE="/var/metacat/users/password.xml"
         SOLR_CONF_FILES=`su metacat /usr/bin/bash -c "cd ${SOLR_CONF_DEFAULT_LOCATION} && find ."`
@@ -122,17 +135,6 @@ su metacat <<EOSU
 EOSU
         done
     fi
-
-## Using Here document to create directories as metacat
-su metacat <<EOSU
-    #Make sure all default directories are available
-    mkdir -p /var/metacat/data \
-        /var/metacat/inline-data \
-        /var/metacat/documents \
-        /var/metacat/temporary \
-        /var/metacat/logs
-EOSU
-
 
     # If there is an admin/password set and it does not exist in the passwords file
     # set it

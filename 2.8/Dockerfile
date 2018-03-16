@@ -20,7 +20,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && cat /tmp/catalina.properties >> /usr/local/tomcat/conf/catalina.properties
 
 
-
 COPY apply_config.py /usr/local/bin/
 RUN ln -s usr/local/bin/apply_config.py / # backwards compat
 
@@ -31,12 +30,13 @@ COPY docker-entrypoint.sh /usr/local/bin/
 RUN ln -s usr/local/bin/docker-entrypoint.sh / # backwards compat
 ENTRYPOINT ["docker-entrypoint.sh"]
 
-# create unprivileged user
-RUN groupadd -g ${METACAT_GID}  metacat && \
+# create unprivileged user, create application directories, and ensure proper permissions
+RUN groupadd -g ${METACAT_GID} metacat && \
     useradd -u ${METACAT_UID} -g ${METACAT_GID} -c 'Metacat User'  --no-create-home metacat && \
     mkdir -p /var/metacat && \
-    chown -R metacat:metacat logs temp work && \
-    chown -R :metacat /usr/local/tomcat/conf  && \
+    mkdir -p /var/metacat-fast && \
+    chown -R metacat:metacat /var/metacat /var/metacat-fast logs temp work && \
+    chown -R :metacat /usr/local/tomcat/conf && \
     chmod +r+g conf/*
 
 EXPOSE 8080
@@ -44,6 +44,3 @@ EXPOSE 8009
 EXPOSE 8443
 
 CMD ["bin/catalina.sh","start"]
-
-
-
