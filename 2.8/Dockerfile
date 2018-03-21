@@ -8,13 +8,15 @@ ARG METACAT_GID=121
 
 ENV METACAT_APP_CONTEXT=metacat
 ARG METACAT_VERSION=2.8.4
-ADD /metacat-bin-${METACAT_VERSION}.tar.gz /tmp
+ADD /metacat-bin-${METACAT_VERSION}.tar.gz /tmp/
 ADD catalina.properties /tmp/
+ADD server.xml.patch /tmp/
 
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        vim \
+        patch \
         python-bcrypt \
+        vim \
     && rm -rf /var/lib/apt/lists/* \
     && cp /tmp/metacat.war /tmp/metacat-index.war /usr/local/tomcat/webapps \
     && cat /tmp/catalina.properties >> /usr/local/tomcat/conf/catalina.properties
@@ -29,6 +31,9 @@ RUN ln -s usr/local/bin/apply_context.py / # backwards compat
 COPY docker-entrypoint.sh /usr/local/bin/
 RUN ln -s usr/local/bin/docker-entrypoint.sh / # backwards compat
 ENTRYPOINT ["docker-entrypoint.sh"]
+
+# merge recommended settings for metacat into default configuration
+RUN patch conf/server.xml /tmp/server.xml.patch
 
 # create unprivileged user, create application directories, and ensure proper permissions
 RUN groupadd -g ${METACAT_GID} metacat && \
