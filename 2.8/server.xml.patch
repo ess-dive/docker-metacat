@@ -11,7 +11,7 @@
 +               connectionTimeout="20000"
 +               maxConnections="10000"
 +               maxPostSize="-1"
-+               maxThreads=500 />
++               maxThreads="500" />
  
  
      <!-- An Engine represents the entry point (within Catalina) that processes
