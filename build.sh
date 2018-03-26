@@ -46,3 +46,4 @@ fi
 echo "docker build ${BUILD_ARGS} -t metacat:$VERSION $VERSION_MAJOR_MINOR"
 docker pull tomcat:7.0-jre8
 docker build ${BUILD_ARGS} -t metacat:${VERSION} ${VERSION_MAJOR_MINOR}
+docker tag metacat:${VERSION} metacat
