@@ -32,7 +32,7 @@ if [ "$1" = 'bin/catalina.sh' ]; then
     fi
 
     # change the context in the web.xml file
-    apply_context.py $METACAT_DIR/WEB-INF/web.xml metacat ${METACAT_APP_CONTEXT}
+    apply_context.py metacat ${METACAT_APP_CONTEXT}
 
     DEFAULT_PROPERTIES_FILE=${METACAT_DIR}/WEB-INF/metacat.properties
     APP_PROPERTIES_FILE=${APP_PROPERTIES_FILE:-/config/app.properties}
