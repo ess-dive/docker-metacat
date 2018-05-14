@@ -1,6 +1,17 @@
 #!/bin/bash
 set -eo pipefail
 
+# Function to Clean up testing artifacts
+function finish {
+  echo "Cleaning up testing artifacts:"
+  docker rm -vf $mnid  $dbid $cid
+  docker network rm metacat-test-network
+  rm $test_file
+}
+
+# Remove container afterwards
+trap finish EXIT
+
 [ "$DEBUG" ] && set -x
 
 # Set current working directory
@@ -29,11 +40,13 @@ TEST_PWD="$(docker exec "$cid" pwd )"
 # Give time to start up
 sleep 5
 
-#Check for Solr configuration in the logs
-[ $(docker logs $cid  | grep 'Copying Solr configuraiton file:' | wc -l) -ne 0 ] || (echo "Solr configuration was not copied" && exit 1)
-
 #Check for added catalina properties
 [ $(docker exec $cid cat ./conf/catalina.properties | grep 'ALLOW_' | wc -l) -ne 0 ] || (echo "Catalina properties not configured" && exit 1)
+
+
+#Check for Solr configuration in the logs
+[ $(docker logs $cid  | grep 'INFO SOLR_CONF_LOCATION /var/metacat-fast/solr-home' | wc -l) -ne 0 ] || (echo "Solr configuration was not copied" && exit 1)
+
 
 # Test the full application
 docker network create metacat-test-network > /dev/null
@@ -62,7 +75,7 @@ echo "server.name=localhost" >> $test_file
 echo "server.httpPort=8080" >> $test_file
 echo "server.httpSSLPort=8443" >> $test_file
 echo "application.deployDir=/usr/local/tomcat/webapps" >> $test_file
-echo "application.context=metacat" >> $test_file
+echo "application.context=\${METACAT_APP_CONTEXT}" >> $test_file
 echo "database.connectionURI=jdbc:postgresql://testdb/metacat" >> $test_file
 echo "database.user=metacat" >> $test_file
 echo "database.password=metacat" >> $test_file
@@ -71,6 +84,7 @@ echo "database.driver=org.postgresql.Driver" >> $test_file
 echo "database.adapter=edu.ucsb.nceas.dbadapter.PostgresqlAdapter" >> $test_file
 echo "auth.administrators=metacat-admin@localhost" >> $test_file
 echo "replication.logdir=/var/metacat/logs" >> $test_file
+echo "solr.homeDir=/var/metacat-fast/solr-home" >> $test_file
 
 mnid=$(docker run  \
        -v ${test_file}:/config/app.properties   \
@@ -85,6 +99,7 @@ mnid=$(docker run  \
 
 # Waiting for startup
 sleep 20
+
 [ $(docker logs $mnid | grep 'Merged /config/app.properties with' | wc -l) -ne 0 ] || \
     (echo "Properties not merged!" && exit 1)
 
@@ -95,20 +110,9 @@ sleep 20
     (echo "DB not initialized!" && exit 1)
 
 #Check for modified web.xml
-[ $(docker exec $mnid cat ./webapps/foobar/WEB-INF/web.xml | grep 'foobar' | wc -l) -ne 0 ] || (echo "Application context not changed in web.xml" && exit 1)
 [ $(docker exec $mnid cat ./webapps/metacat-index/WEB-INF/web.xml | grep 'foobar' | wc -l) -ne 0 ] || (echo "Application context not changed in metacat-index web.xml" && exit 1)
 
 
-
-function finish {
-  echo "Cleaning up testing artifacts:"
-  docker rm -vf $mnid  $dbid $cid
-  docker network rm metacat-test-network
-  rm $test_file
-}
-
-trap 'err_report $LINENO' ERR
-
-# Remove container afterwards
-trap finish EXIT
-
+echo
+echo "SUCCESS!!"
+echo

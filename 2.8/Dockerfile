@@ -7,7 +7,7 @@ ARG METACAT_UID=108
 ARG METACAT_GID=121
 
 ENV METACAT_APP_CONTEXT=metacat
-ARG METACAT_VERSION=2.8.4
+ARG METACAT_VERSION=2.8.7
 ADD /metacat-bin-${METACAT_VERSION}.tar.gz /tmp/
 ADD catalina.properties /tmp/
 ADD server.xml.patch /tmp/

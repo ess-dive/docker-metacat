@@ -50,6 +50,18 @@ documentation for more information on how to configure a Metacat member node.
 
 # How to use this image
 
+## Image Build Arguments
+The following are the optional build arguments for this docker image.
+
+**METADAT_GID:** (default: 121 - debian tomcat GID) the UID to run the Tomcat server as. 
+
+**METACAT_UID:** (default: 108 - debian tomcat UID) the UID to run the Tomcat server as.
+
+```
+docker build --build-arg METACAT_UID=<uid> 
+    --build-arg METADAT_GID=<gid>
+```
+
 ## Image Environment Variables
 The following environment variables are optional:
 
@@ -64,10 +76,15 @@ must be mountied inside the container.
 **APP_PROPERTIES_FILE:** (default /config/app.properties) The file path where the local application property files 
 are mounted in the container.
 
+**METACAT_APP_CONTEXT:** (default: metacat) The metacat application context that is presented in the url path. The
+url path is `http://domain/METACAT_APP_CONTEXT`.
+
+**METACAT_VERSION:** (default:2.8.7) The version of metacat to download and install in the image
+
 
 Build the docker metacat image:
 
-    VERSION=2.8.5
+    VERSION=2.8.7
     ./build.sh $VERSION
 
 Create a file named `app.properties` with the content below:
@@ -142,3 +159,4 @@ This image is officially supported on Docker version 17.09.0.
 Current Project Team Members:
 
  * [@vchendrix](https://github.com/vchendrix)
+ * [@csnavely ](https://gitlab.com/csnavely)
