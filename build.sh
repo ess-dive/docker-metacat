@@ -22,28 +22,21 @@ then
 fi
 
 VERSION=$1
-VERSION_MAJOR_MINOR=${VERSION%.*}
 
-if [ ! -d $BUILD_DIR ];
-then
-    echo "$BUILD_DIR does not exist"
-    exit
-fi
 
 # Get Metacat
 METACAT=metacat-bin-${VERSION}
 ARCHIVE=${METACAT}.tar.gz
-wget  -c http://knb.ecoinformatics.org/software/dist/${ARCHIVE} -O ${VERSION_MAJOR_MINOR}/${ARCHIVE}
 
 BUILD_ARGS="${BUILD_ARGS} --build-arg METACAT_VERSION=${VERSION}"
 
-if [ ! -f  ${VERSION_MAJOR_MINOR}/${ARCHIVE} ];
+if [ ! -f  ${ARCHIVE} ];
 then
 
-    wget  -c http://knb.ecoinformatics.org/software/dist/${ARCHIVE} -O ${VERSION_MAJOR_MINOR}/${ARCHIVE}
+    wget  -c http://knb.ecoinformatics.org/software/dist/${ARCHIVE} -O ${ARCHIVE}
 fi
 
-echo "docker build ${BUILD_ARGS} -t metacat:$VERSION $VERSION_MAJOR_MINOR"
+echo "docker build ${BUILD_ARGS} -t metacat:$VERSION ."
 docker pull tomcat:7.0-jre8
-docker build ${BUILD_ARGS} -t metacat:${VERSION} ${VERSION_MAJOR_MINOR}
+docker build ${BUILD_ARGS} -t metacat:${VERSION} .
 docker tag metacat:${VERSION} metacat
