@@ -33,7 +33,7 @@ BUILD_ARGS="${BUILD_ARGS} --build-arg METACAT_VERSION=${VERSION}"
 if [ ! -f  ${ARCHIVE} ];
 then
 
-    wget  -c http://knb.ecoinformatics.org/software/dist/${ARCHIVE} -O ${ARCHIVE}
+    wget  http://knb.ecoinformatics.org/software/dist/${ARCHIVE} -O ${ARCHIVE}
 fi
 
 echo "docker build ${BUILD_ARGS} -t metacat:$VERSION ."
