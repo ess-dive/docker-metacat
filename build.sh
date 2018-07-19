@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-
 set -e
 
 if [ -z $1 ] ;
@@ -11,17 +10,27 @@ fi
 BUILD_ARGS=""
 if [ ! -z $2 ] ;
 then
-
-    BUILD_ARGS="${BUILD_ARGS} --build-arg METACAT_UID=$2"
+    METACAT_UID=$2
 fi
 
 if [ ! -z $3 ] ;
 then
-
-    BUILD_ARGS="${BUILD_ARGS} --build-arg METACAT_GID=$3"
+    METACAT_GID=$3
 fi
 
+if [ ! -z $METACAT_UID ];
+then
+  BUILD_ARGS="${BUILD_ARGS} --build-arg METACAT_UID=$METACAT_UID"
+fi
+
+if [ ! -z $METACAT_GID ];
+then
+  BUILD_ARGS="${BUILD_ARGS} --build-arg METACAT_GID=$METACAT_GID"
+fi
+
+
 VERSION=$1
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
 
 
 # Get Metacat
@@ -30,13 +39,13 @@ ARCHIVE=${METACAT}.tar.gz
 
 BUILD_ARGS="${BUILD_ARGS} --build-arg METACAT_VERSION=${VERSION}"
 
-if [ ! -f  ${ARCHIVE} ];
+if [ ! -f  $DIR/${ARCHIVE} ];
 then
 
-    wget  http://knb.ecoinformatics.org/software/dist/${ARCHIVE} -O ${ARCHIVE}
+    wget  http://knb.ecoinformatics.org/software/dist/${ARCHIVE} -O $DIR/${ARCHIVE}
 fi
 
-echo "docker build ${BUILD_ARGS} -t metacat:$VERSION ."
+echo "docker build ${BUILD_ARGS} -t metacat:$VERSION $DIR"
 docker pull tomcat:7.0-jre8
-docker build ${BUILD_ARGS} -t metacat:${VERSION} .
+docker build ${BUILD_ARGS} -t metacat:${VERSION} $DIR
 docker tag metacat:${VERSION} metacat
