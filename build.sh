@@ -10,22 +10,22 @@ fi
 BUILD_ARGS=""
 if [ ! -z $2 ] ;
 then
-    METACAT_UID=$2
+    ESSIDIVE_UID=$2
 fi
 
 if [ ! -z $3 ] ;
 then
-    METACAT_GID=$3
+    ESSIDIVE_GID=$3
 fi
 
 if [ ! -z $METACAT_UID ];
 then
-  BUILD_ARGS="${BUILD_ARGS} --build-arg METACAT_UID=$METACAT_UID"
+  BUILD_ARGS="${BUILD_ARGS} --build-arg METACAT_UID=$ESSDIVE_UID"
 fi
 
 if [ ! -z $METACAT_GID ];
 then
-  BUILD_ARGS="${BUILD_ARGS} --build-arg METACAT_GID=$METACAT_GID"
+  BUILD_ARGS="${BUILD_ARGS} --build-arg METACAT_GID=$ESSDIVE_GID"
 fi
 
 

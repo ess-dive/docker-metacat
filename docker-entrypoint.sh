@@ -91,21 +91,16 @@ if [ "$1" = 'bin/catalina.sh' ]; then
         exit -2
     fi
 
-
-    # Set the metacat user as the owner of webapps
-    chown -R metacat:metacat webapps
-
-
     # Make sure all default directories are available and owned by metacat
     [ `stat -c '%U:%G' /var/metacat`      = 'metacat:metacat' ] || chown metacat:metacat /var/metacat
     [ `stat -c '%U:%G' /var/metacat-fast` = 'metacat:metacat' ] || chown metacat:metacat /var/metacat-fast
-    su metacat <<EOSU
+
     mkdir -p /var/metacat/data \
         /var/metacat/inline-data \
         /var/metacat/documents \
         /var/metacat/temporary \
         /var/metacat/logs
-EOSU
+
 
     # Initialize the solr home directory
     SOLR_CONF_LOCATION=/var/metacat-fast/solr-home
@@ -115,24 +110,21 @@ EOSU
         # Setup env for Here Document
         SOLR_CONF_DEFAULT_LOCATION=/usr/local/tomcat/webapps/metacat-index/WEB-INF/classes/solr-home
         USER_PWFILE="/var/metacat/users/password.xml"
-        SOLR_CONF_FILES=`su metacat /usr/bin/bash -c "cd ${SOLR_CONF_DEFAULT_LOCATION} && find ."`
+        SOLR_CONF_FILES=`/usr/bin/bash -c "cd ${SOLR_CONF_DEFAULT_LOCATION} && find ."`
 
         echo "INFO SOLR_CONF_LOCATION ${SOLR_CONF_LOCATION}"
-        su metacat /usr/bin/bash -c "mkdir -p $SOLR_CONF_LOCATION"
+        /usr/bin/bash -c "mkdir -p $SOLR_CONF_LOCATION"
 
         for SOLR_FILE in ${SOLR_CONF_FILES[@]}
         do
         NEW_DIR=$(dirname $SOLR_CONF_LOCATION/$SOLR_FILE)
 
-# Execute as metacat
-su metacat <<EOSU
-            mkdir -p $NEW_DIR
-            if [ -f $SOLR_CONF_DEFAULT_LOCATION/$SOLR_FILE ] && [ ! -f $SOLR_CONF_LOCATION/$SOLR_FILE ];
-            then
-                echo "cp ${SOLR_CONF_DEFAULT_LOCATION}/$SOLR_FILE $SOLR_CONF_LOCATION/$SOLR_FILE"
-                cp ${SOLR_CONF_DEFAULT_LOCATION}/$SOLR_FILE $SOLR_CONF_LOCATION/$SOLR_FILE
-            fi
-EOSU
+        mkdir -p $NEW_DIR
+        if [ -f $SOLR_CONF_DEFAULT_LOCATION/$SOLR_FILE ] && [ ! -f $SOLR_CONF_LOCATION/$SOLR_FILE ];
+        then
+            echo "cp ${SOLR_CONF_DEFAULT_LOCATION}/$SOLR_FILE $SOLR_CONF_LOCATION/$SOLR_FILE"
+            cp ${SOLR_CONF_DEFAULT_LOCATION}/$SOLR_FILE $SOLR_CONF_LOCATION/$SOLR_FILE
+        fi
         done
     fi
 
@@ -148,8 +140,6 @@ EOSU
             exit -1
         fi
 
-# Execute as metacat
-su metacat <<EOSU
         echo
         echo '**************************************'
         echo 'Adding administrator to passwords file'
@@ -174,12 +164,10 @@ su metacat <<EOSU
             echo
 
         fi
-EOSU
 
     fi
 
 # Execute as metacat
-su metacat <<EOSU
     echo
     echo '**************************************'
     echo "Setting umask"
@@ -206,7 +194,7 @@ su metacat <<EOSU
     echo
     sleep 5
 
-EOSU
+
 
     # Login to Metacat Admin and start a session (cookie.txt)
     echo
@@ -268,6 +256,6 @@ EOSU
 
 fi
 
-exec su metacat -c 'tail -f /usr/local/tomcat/logs/catalina.out'
+exec tail -f /usr/local/tomcat/logs/catalina.out
 
 
