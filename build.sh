@@ -18,12 +18,12 @@ then
     ESSIDIVE_GID=$3
 fi
 
-if [ ! -z $METACAT_UID ];
+if [ ! -z $ESSDIVE_UID ];
 then
   BUILD_ARGS="${BUILD_ARGS} --build-arg METACAT_UID=$ESSDIVE_UID"
 fi
 
-if [ ! -z $METACAT_GID ];
+if [ ! -z $ESSDIVE_GID ];
 then
   BUILD_ARGS="${BUILD_ARGS} --build-arg METACAT_GID=$ESSDIVE_GID"
 fi
