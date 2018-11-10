@@ -49,3 +49,5 @@ echo "docker build ${BUILD_ARGS} -t metacat:$VERSION $DIR"
 docker pull tomcat:7.0-jre8
 docker build ${BUILD_ARGS} -t metacat:${VERSION} $DIR
 docker tag metacat:${VERSION} metacat
+docker tag metacat:${VERSION} ${REGISTRY_SPIN}/metacat:${VERSION}
+
