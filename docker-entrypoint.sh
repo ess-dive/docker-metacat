@@ -110,10 +110,10 @@ if [ "$1" = 'bin/catalina.sh' ]; then
         # Setup env for Here Document
         SOLR_CONF_DEFAULT_LOCATION=/usr/local/tomcat/webapps/metacat-index/WEB-INF/classes/solr-home
         USER_PWFILE="/var/metacat/users/password.xml"
-        SOLR_CONF_FILES=`/usr/bin/bash -c "cd ${SOLR_CONF_DEFAULT_LOCATION} && find ."`
+        SOLR_CONF_FILES=`bash -c "cd ${SOLR_CONF_DEFAULT_LOCATION} && find ."`
 
         echo "INFO SOLR_CONF_LOCATION ${SOLR_CONF_LOCATION}"
-        /usr/bin/bash -c "mkdir -p $SOLR_CONF_LOCATION"
+        bash -c "mkdir -p $SOLR_CONF_LOCATION"
 
         for SOLR_FILE in ${SOLR_CONF_FILES[@]}
         do
