@@ -154,7 +154,9 @@ if [ "$1" = 'bin/catalina.sh' ]; then
 
             ## Note: the Java bcrypt library only supports '2a' format hashes, so override the default python behavior
             ## so that the hases created start with '2a' rather than '2b'
-            bash ./authFileManager.sh useradd -h '`python -c "import bcrypt; print bcrypt.hashpw('$ADMINPASS', bcrypt.gensalt(10,prefix='2a'))"`' -dn "$ADMIN"
+            bash ./authFileManager.sh useradd \
+                -h "`python -c "import bcrypt; print bcrypt.hashpw('$ADMINPASS', bcrypt.gensalt(10,prefix='2a'))"`" \
+                -dn "$ADMIN"
             cd /usr/local/tomcat
 
             echo
@@ -208,8 +210,10 @@ if [ "$1" = 'bin/catalina.sh' ]; then
         --data "loginAction=Login&configureType=login&processForm=true&password=${ADMINPASS}&username=${ADMIN}" \
         --cookie-jar /tmp/cookie.txt http://localhost:8080/${METACAT_APP_CONTEXT}/admin > /tmp/login_result.txt 2>&1
 
+
+
     # Test the the admin logged in successfully
-    [ -f /tmp/login_result.txt ] && [ $(grep "User logged in as:" /tmp/login_result.txt| wc -l) -eq 1 ] || (echo "Administrator not logged in!!" && exit -4)
+    [ -f /tmp/login_result.txt ] && [ $(grep "User logged in as:" /tmp/login_result.txt| wc -l) -eq 1 ] || (echo "Administrator not logged in!!" &&  grep "<message>" /tmp/login_result.txt && exit -4)
 
     echo
     echo '**************************************'
