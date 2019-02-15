@@ -101,6 +101,16 @@ if [ "$1" = 'bin/catalina.sh' ]; then
         /var/metacat/temporary \
         /var/metacat/logs
 
+    # Look for Tomcat Configuration to copy
+    if [ -d /config/conf ];
+    then
+        for f in /config/conf/*;
+        do
+            echo "Copying $f to /usr/local/tomcat/conf"
+            cp $f /usr/local/tomcat/conf
+        done
+    fi
+
 
     # Initialize the solr home directory
     SOLR_CONF_LOCATION=/var/metacat-fast/solr-home
@@ -194,7 +204,7 @@ if [ "$1" = 'bin/catalina.sh' ]; then
     echo "checking upgrade/initialization status"
     echo '**************************************'
     echo
-    sleep 5
+    sleep 5 
 
 
 
@@ -206,11 +216,9 @@ if [ "$1" = 'bin/catalina.sh' ]; then
     echo '**************************************'
     echo
 
-    curl -X POST \
+    curl -v -X POST \
         --data "loginAction=Login&configureType=login&processForm=true&password=${ADMINPASS}&username=${ADMIN}" \
         --cookie-jar /tmp/cookie.txt http://localhost:8080/${METACAT_APP_CONTEXT}/admin > /tmp/login_result.txt 2>&1
-
-
 
     # Test the the admin logged in successfully
     [ -f /tmp/login_result.txt ] && [ $(grep "User logged in as:" /tmp/login_result.txt| wc -l) -eq 1 ] || (echo "Administrator not logged in!!" &&  grep "<message>" /tmp/login_result.txt && exit -4)

@@ -41,7 +41,7 @@ RUN groupadd -g ${METACAT_GID} metacat && \
     mkdir -p /var/metacat && \
     mkdir -p /var/metacat-fast && \
     chown -R metacat:metacat /var/metacat /var/metacat-fast logs temp work && \
-    chown -R :metacat /usr/local/tomcat/conf && \
+    chown -R metacat:metacat /usr/local/tomcat/conf && \
     chown metacat:metacat /usr/local/tomcat/webapps  && \
     chmod g+s  /usr/local/tomcat/webapps   && \
     chmod +r+g conf/*
