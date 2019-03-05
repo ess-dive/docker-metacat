@@ -179,7 +179,7 @@ if [ "$1" = 'bin/catalina.sh' ]; then
 
     fi
 
-# Execute as metacat
+
     echo
     echo '**************************************'
     echo "Setting umask"
@@ -204,7 +204,7 @@ if [ "$1" = 'bin/catalina.sh' ]; then
     echo "checking upgrade/initialization status"
     echo '**************************************'
     echo
-    sleep 5 
+    sleep 5
 
 
 
@@ -244,6 +244,25 @@ if [ "$1" = 'bin/catalina.sh' ]; then
         curl -X POST --cookie /tmp/cookie.txt \
             --data "configureType=configure&processForm=false" \
             http://localhost:8080/${METACAT_APP_CONTEXT}/admin > /dev/null 2>&1
+
+        sleep 5
+
+        # stop tomcat and ignore exit signal
+        /bin/catalina.sh stop > /dev/null 2>&1 || true
+
+
+        # Give time for tomcat to stop
+        echo
+        echo '**************************************'
+        echo "Waiting for Tomcat to stop before"
+        echo "restarting after upgrade/initialization"
+        echo '**************************************'
+        echo
+        sleep 5
+
+
+        # Start tomcat
+        $@ > /dev/null 2>&1
 
         echo
         echo '***********************************'
