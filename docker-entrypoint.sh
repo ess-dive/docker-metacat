@@ -2,6 +2,11 @@
 
 set -e
 
+if [ $DEBUG -eq 1 ];
+then 
+    set -x
+fi
+
 if [ "$1" = 'bin/catalina.sh' ]; then
 
 

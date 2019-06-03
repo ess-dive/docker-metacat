@@ -143,7 +143,26 @@ Run the docker container
 
 The metacat REST API should be able to be accessed at `http://localhost:8080/metacat/d1/mn`
 
+## Patch server.xml 
 
+*Get the conf files from the latest image*
+
+    docker pull tomcat:7.0-jre8
+    
+*If the image updated, then determine if the conf files changed*
+    
+    docker run --entrypoint "/bin/cat" tomcat:7.0-jre8  conf/server.xml > image-server.xml
+    git diff image-server.xml
+    
+    
+*If modifying the conf file, update `server.xml`*  Then create the patch file.
+
+    diff  -u image-server.xml server.xml > server.xml.patch 
+    
+*Check the patch to see if the changes make sense*
+
+    git diff server.xml.patch
+    
 
 # License
 
