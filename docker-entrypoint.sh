@@ -226,7 +226,7 @@ if [ "$1" = 'bin/catalina.sh' ]; then
         --cookie-jar /tmp/cookie.txt http://localhost:8080/${METACAT_APP_CONTEXT}/admin > /tmp/login_result.txt 2>&1
 
     # Test the the admin logged in successfully
-    [ -f /tmp/login_result.txt ] && [ $(grep "User logged in as:" /tmp/login_result.txt| wc -l) -eq 1 ] || (echo "Administrator not logged in!!" &&  grep "<message>" /tmp/login_result.txt && exit -4)
+	    [ -f /tmp/login_result.txt ] && [ $(grep "User logged in as:" /tmp/login_result.txt| wc -l) -eq 1 ] || (echo "Administrator not logged in!!" && [ ! $DEBUG -eq 1 ] &&  grep "<message>" /tmp/login_result.txt && exit -4)
 
     echo
     echo '**************************************'
