@@ -45,9 +45,20 @@ then
     wget  http://knb.ecoinformatics.org/software/dist/${ARCHIVE} -O $DIR/${ARCHIVE}
 fi
 
-echo "docker build ${BUILD_ARGS} -t metacat:$VERSION $DIR"
+# create the docker tag
+DOCKER_TAG="${VERSION}-p$(cd $DIR; git rev-list HEAD --count)"
+
+# CREATE image_version.yml
+echo "****************************"
+echo "BUILDING image_version"
+echo "****************************"
+IMAGE_VERSION_CONTENT="$(cd $DIR && git log -n 1 --pretty="commit_count:  $(git rev-list HEAD --count)%ncommit_hash:   %h%nsubject:       %s%ncommitter:     %cN <%ce>%ncommiter_date: %ci%nauthor:        %aN <%ae>%nauthor_date:   %ai%nref_names:     %D" )"
+echo "$IMAGE_VERSION_CONTENT" > $DIR/image_version.yml
+cat $DIR/image_version.yml
+
+echo "docker build ${BUILD_ARGS} -t metacat:$DOCKER_TAG $DIR"
 docker pull tomcat:7.0-jre8
-docker build ${BUILD_ARGS} -t metacat:${VERSION} $DIR
-docker tag metacat:${VERSION} metacat
-docker tag metacat:${VERSION} ${REGISTRY_SPIN}/metacat:${VERSION}
+docker build ${BUILD_ARGS} -t metacat:${DOCKER_TAG} $DIR
+docker tag metacat:${DOCKER_TAG} metacat
+docker tag metacat:${DOCKER_TAG} ${REGISTRY_SPIN}/metacat:${DOCKER_TAG}
 

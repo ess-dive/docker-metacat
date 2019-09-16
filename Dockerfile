@@ -11,12 +11,14 @@ ARG METACAT_VERSION=2.8.7
 ADD /metacat-bin-${METACAT_VERSION}.tar.gz /tmp/
 ADD catalina.properties /tmp/
 ADD server.xml.patch /tmp/
+ADD image_version.yml image_version.yml
 
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
         patch \
         python-bcrypt \
         vim \
+        netcat \
     && rm -rf /var/lib/apt/lists/* \
     && cp /tmp/metacat.war /tmp/metacat-index.war /usr/local/tomcat/webapps \
     && cat /tmp/catalina.properties >> /usr/local/tomcat/conf/catalina.properties
