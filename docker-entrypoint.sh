@@ -3,7 +3,7 @@
 set -e
 
 if [ $DEBUG -eq 1 ];
-then 
+then
     set -x
 fi
 
@@ -41,7 +41,7 @@ if [ "$1" = 'bin/catalina.sh' ]; then
 
     DEFAULT_PROPERTIES_FILE=${METACAT_DIR}/WEB-INF/metacat.properties
     APP_PROPERTIES_FILE=${APP_PROPERTIES_FILE:-/config/app.properties}
-    METACATUI_SKIN_PATH=${METACATUI_SKIN_PATH:-/config/skin}
+    METACATUI_SKIN_PATH=${METACATUI_SKIN_PATH:-/config/skins}
 
 
     # Look for the metacat ui skin directory
@@ -49,16 +49,14 @@ if [ "$1" = 'bin/catalina.sh' ]; then
     then
         echo
         echo '**********************************************************'
-        echo "Copying skin files from  ${METACATUI_SKIN_PATH}  "
+        echo "Synchronizing skins from  ${METACATUI_SKIN_PATH}  "
         echo '***********************************************************'
         echo
-        # copy skin files in the MetacatUI skins directory
-        find ${METACATUI_SKIN_PATH} -type f | sed "s|${METACATUI_SKIN_PATH}||" \
-            | xargs -I '{}' cp -vf /config/skin/'{}'  $METACAT_DIR/style/skins/metacatui/'{}'
+        cp -Rv ${METACATUI_SKIN_PATH}/* ${METACAT_DIR}/style/skins/
 
         echo
         echo '**********************************************************'
-        echo "Copied skin files ${METACATUI_SKIN_PATH}  "
+        echo "Synchronized skins ${METACATUI_SKIN_PATH}  "
         echo '***********************************************************'
         echo
 
