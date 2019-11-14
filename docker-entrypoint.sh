@@ -13,6 +13,7 @@ if [ "$1" = 'bin/catalina.sh' ]; then
     METACAT_DEFAULT_WAR=/usr/local/tomcat/webapps/metacat.war
     METACAT_DIR=/usr/local/tomcat/webapps/${METACAT_APP_CONTEXT}
     METACAT_WAR=${METACAT_DIR}.war
+    METACATUI_BASE_SKIN_PATH=/usr/local/tomcat/webapps/catalog/style/skins/metacatui
 
     # Expand the metacat-index.war
     if [ ! -d webapps/metacat-index ];
@@ -41,27 +42,53 @@ if [ "$1" = 'bin/catalina.sh' ]; then
 
     DEFAULT_PROPERTIES_FILE=${METACAT_DIR}/WEB-INF/metacat.properties
     APP_PROPERTIES_FILE=${APP_PROPERTIES_FILE:-/config/app.properties}
-    METACATUI_SKIN_PATH=${METACATUI_SKIN_PATH:-/config/skins}
+    METACATUI_CUSTOM_SKINS_PATH=/config/skins
 
 
     # Look for the metacat ui skin directory
-    if [ -d ${METACATUI_SKIN_PATH} ];
+    if [ -d ${METACATUI_CUSTOM_SKINS_PATH} ];
     then
-        echo
-        echo '**********************************************************'
-        echo "Synchronizing skins from  ${METACATUI_SKIN_PATH}  "
-        echo '***********************************************************'
-        echo
-        cp -Rv ${METACATUI_SKIN_PATH}/* ${METACAT_DIR}/style/skins/
+
+
 
         echo
         echo '**********************************************************'
-        echo "Synchronized skins ${METACATUI_SKIN_PATH}  "
+        echo "Synchronizing skins from  ${METACATUI_CUSTOM_SKINS_PATH}  "
+        echo '***********************************************************'
+        echo
+
+        for skin_path in ${METACATUI_CUSTOM_SKINS_PATH}/*/ # list skins paths
+            do
+
+                skin_path=${skin_path%*/}      # remove the trailing "/"
+                skin_name=$(basename "$skin_path")
+
+                echo
+                echo '**********************************************************'
+                echo "Copying base metacat skin properties files into ${skin_path}"
+                echo '***********************************************************'
+                echo
+
+                cp -v $METACATUI_BASE_SKIN_PATH/metacatui.properties ${skin_path}/${skin_name}.properties
+                cp -v $METACATUI_BASE_SKIN_PATH/metacatui.properties.metadata.xml ${skin_path}/${skin_name}.properties.metadata.xml
+
+                cp -Rv ${skin_path} ${METACAT_DIR}/style/skins/
+
+                echo
+                echo '**********************************************************'
+                echo "Finished syncing skin: ${skin_name}"
+                echo '***********************************************************'
+                echo
+            done
+
+
+        echo
+        echo '**********************************************************'
+        echo "Synchronized all skins from ${METACATUI_CUSTOM_SKINS_PATH}"
         echo '***********************************************************'
         echo
 
     fi
-
     # Look for dbpassword file
     if [  ! -z "$DB_PASSWORD_FILE"  ] && [ -s $DB_PASSWORD_FILE ];
     then
@@ -85,6 +112,8 @@ if [ "$1" = 'bin/catalina.sh' ]; then
         echo 'default metacat.properties'
         echo '***********************************************************'
         echo
+
+
     elif [ "$APP_PROPERTIES_FILE" != "/config/app.properties" ];
     then
 
@@ -207,7 +236,7 @@ if [ "$1" = 'bin/catalina.sh' ]; then
     echo "checking upgrade/initialization status"
     echo '**************************************'
     echo
-    sleep 5
+    sleep 10
 
 
 
@@ -248,7 +277,7 @@ if [ "$1" = 'bin/catalina.sh' ]; then
             --data "configureType=configure&processForm=false" \
             http://localhost:8080/${METACAT_APP_CONTEXT}/admin > /dev/null 2>&1
 
-        sleep 5
+        sleep 10
 
         # stop tomcat and ignore exit signal
         /bin/catalina.sh stop > /dev/null 2>&1 || true
@@ -261,7 +290,7 @@ if [ "$1" = 'bin/catalina.sh' ]; then
         echo "restarting after upgrade/initialization"
         echo '**************************************'
         echo
-        sleep 5
+        sleep 10
 
 
         # Start tomcat
