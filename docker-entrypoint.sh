@@ -69,10 +69,10 @@ if [ "$1" = 'bin/catalina.sh' ]; then
                 echo '***********************************************************'
                 echo
 
-                cp -v $METACATUI_BASE_SKIN_PATH/metacatui.properties ${skin_path}/${skin_name}.properties
-                cp -v $METACATUI_BASE_SKIN_PATH/metacatui.properties.metadata.xml ${skin_path}/${skin_name}.properties.metadata.xml
-
                 cp -Rv ${skin_path} ${METACAT_DIR}/style/skins/
+
+                cp -v $METACATUI_BASE_SKIN_PATH/metacatui.properties ${METACAT_DIR}/style/skins/${skin_name}/${skin_name}.properties
+                cp -v $METACATUI_BASE_SKIN_PATH/metacatui.properties.metadata.xml ${METACAT_DIR}/style/skins/${skin_name}/${skin_name}.properties.metadata.xml
 
                 echo
                 echo '**********************************************************'
