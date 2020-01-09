@@ -37,6 +37,8 @@ if [ "$1" = 'bin/catalina.sh' ]; then
         unzip  $METACAT_WAR -d $METACAT_DIR
     fi
 
+
+
     # change the context in the web.xml file
     apply_context.py metacat ${METACAT_APP_CONTEXT}
 
@@ -239,7 +241,6 @@ if [ "$1" = 'bin/catalina.sh' ]; then
     sleep 10
 
 
-
     # Login to Metacat Admin and start a session (cookie.txt)
     echo
     echo '**************************************'
@@ -248,9 +249,11 @@ if [ "$1" = 'bin/catalina.sh' ]; then
     echo '**************************************'
     echo
 
+    # Login to Metacat Admin and start a session (cookie.txt)
     curl -v -X POST \
         --data "loginAction=Login&configureType=login&processForm=true&password=${ADMINPASS}&username=${ADMIN}" \
         --cookie-jar /tmp/cookie.txt http://localhost:8080/${METACAT_APP_CONTEXT}/admin > /tmp/login_result.txt 2>&1
+
 
     # Test the the admin logged in successfully
 	    [ -f /tmp/login_result.txt ] && [ $(grep "User logged in as:" /tmp/login_result.txt| wc -l) -eq 1 ] || (echo "Administrator not logged in!!" && [ ! $DEBUG -eq 1 ] &&  grep "<message>" /tmp/login_result.txt && exit -4)
@@ -261,52 +264,67 @@ if [ "$1" = 'bin/catalina.sh' ]; then
     echo '**************************************'
     echo
 
-    ## If the DB needs to be updated run the migration scripts
-    DB_CONFIGURED=`grep "configureType=database" /tmp/login_result.txt | wc -l`
-    if [ $DB_CONFIGURED -ne 0 ];
-    then
+    if [ "${ESSDIVE_METACAT_MANUAL_UPGRADE}" != 1 ] ; then
 
-        # Run the database initialization to create or upgrade tables
-        # /${METACAT_APP_CONTEXT}/admin?configureType=database must have an authenticated session, then run
-        curl -X POST --cookie /tmp/cookie.txt \
-            --data "configureType=database&processForm=true" \
-            http://localhost:8080/${METACAT_APP_CONTEXT}/admin > /dev/null 2>&1
+        ## If the DB needs to be updated run the migration scripts
+        DB_CONFIGURED=`grep "configureType=database" /tmp/login_result.txt | wc -l`
+        if [ $DB_CONFIGURED -ne 0 ];
+        then
 
-        # Validate the database should be configured
-        curl -X POST --cookie /tmp/cookie.txt \
-            --data "configureType=configure&processForm=false" \
-            http://localhost:8080/${METACAT_APP_CONTEXT}/admin > /dev/null 2>&1
+            # Run the database initialization to create or upgrade tables
+            # /${METACAT_APP_CONTEXT}/admin?configureType=database must have an authenticated session, then run
+            curl -X POST --cookie /tmp/cookie.txt \
+                --data "configureType=database&processForm=true" \
+                http://localhost:8080/${METACAT_APP_CONTEXT}/admin > /dev/null 2>&1
 
-        sleep 10
+            # Validate the database should be configured
+            curl -X POST --cookie /tmp/cookie.txt \
+                --data "configureType=configure&processForm=false" \
+                http://localhost:8080/${METACAT_APP_CONTEXT}/admin > /dev/null 2>&1
 
-        # stop tomcat and ignore exit signal
-        /bin/catalina.sh stop > /dev/null 2>&1 || true
+            sleep 10
 
-
-        # Give time for tomcat to stop
-        echo
-        echo '**************************************'
-        echo "Waiting for Tomcat to stop before"
-        echo "restarting after upgrade/initialization"
-        echo '**************************************'
-        echo
-        sleep 10
+            # stop tomcat and ignore exit signal
+            /bin/catalina.sh stop > /dev/null 2>&1 || true
 
 
-        # Start tomcat
-        $@ > /dev/null 2>&1
+            # Give time for tomcat to stop
+            echo
+            echo '**************************************'
+            echo "Waiting for Tomcat to stop before"
+            echo "restarting after upgrade/initialization"
+            echo '**************************************'
+            echo
+            sleep 10
 
-        echo
-        echo '***********************************'
-        echo "Upgraded/Initialized the metacat DB"
-        echo '***********************************'
-        echo
+
+            # Start tomcat
+            $@ > /dev/null 2>&1
+
+            echo
+            echo '***********************************'
+            echo "Upgraded/Initialized the metacat DB"
+            echo '***********************************'
+            echo
+        else
+            echo
+            echo '**************************************'
+            echo "Metacat is already configured"
+            echo '**************************************'
+            echo
+        fi
+
     else
+
         echo
         echo '**************************************'
-        echo "Metacat is already configured"
+        echo '**************************************'
+        echo "Metacat is configured to be upgraded manually"
+        echo "Please go to http://localhost:8080/${METACAT_APP_CONTEXT}/admin to upgrade metacat"
+        echo '**************************************'
         echo '**************************************'
         echo
+
     fi
 
     # Remove the session cookie
