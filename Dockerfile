@@ -19,10 +19,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         python-bcrypt \
         vim \
         netcat \
+        libxml2-utils \
+        net-tools \
+        telnetd \
+        procps \
     && rm -rf /var/lib/apt/lists/* \
     && cp /tmp/metacat.war /tmp/metacat-index.war /usr/local/tomcat/webapps \
     && cat /tmp/catalina.properties >> /usr/local/tomcat/conf/catalina.properties
-
 
 COPY apply_config.py /usr/local/bin/
 RUN ln -s usr/local/bin/apply_config.py / # backwards compat
