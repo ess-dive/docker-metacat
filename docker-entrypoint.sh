@@ -15,6 +15,10 @@ if [ "$1" = 'bin/catalina.sh' ]; then
     METACAT_WAR=${METACAT_DIR}.war
     METACATUI_BASE_SKIN_PATH=/usr/local/tomcat/webapps/catalog/style/skins/metacatui
 
+    # The following constant defines the last version before the metacat version that supports the upgrade status
+    # ability in metacat node capabilities. This is used to enable the script to learn when to use the node capability
+    UPGRADE_STATUS_ABILITY_PRE_VERSION=2.12.2
+
     # Expand the metacat-index.war
     if [ ! -d webapps/metacat-index ];
     then
@@ -37,21 +41,18 @@ if [ "$1" = 'bin/catalina.sh' ]; then
         unzip  $METACAT_WAR -d $METACAT_DIR
     fi
 
-
-
     # change the context in the web.xml file
     apply_context.py metacat ${METACAT_APP_CONTEXT}
 
     DEFAULT_PROPERTIES_FILE=${METACAT_DIR}/WEB-INF/metacat.properties
     APP_PROPERTIES_FILE=${APP_PROPERTIES_FILE:-/config/app.properties}
     METACATUI_CUSTOM_SKINS_PATH=/config/skins
+    METACAT_VERSION_CONFIGURED=`grep application.metacatVersion $DEFAULT_PROPERTIES_FILE | sed 's/[^:]*=//'`
 
 
     # Look for the metacat ui skin directory
     if [ -d ${METACATUI_CUSTOM_SKINS_PATH} ];
     then
-
-
 
         echo
         echo '**********************************************************'
@@ -264,7 +265,8 @@ if [ "$1" = 'bin/catalina.sh' ]; then
     echo '**************************************'
     echo
 
-    if [ "${ESSDIVE_METACAT_MANUAL_UPGRADE}" != 1 ] ; then
+
+    if [ "${MANUAL_UPGRADE}" != 1 ] ; then
 
         ## If the DB needs to be updated run the migration scripts
         DB_CONFIGURED=`grep "configureType=database" /tmp/login_result.txt | wc -l`
@@ -282,21 +284,104 @@ if [ "$1" = 'bin/catalina.sh' ]; then
                 --data "configureType=configure&processForm=false" \
                 http://localhost:8080/${METACAT_APP_CONTEXT}/admin > /dev/null 2>&1
 
-            sleep 10
-
-            # stop tomcat and ignore exit signal
-            /bin/catalina.sh stop > /dev/null 2>&1 || true
 
 
-            # Give time for tomcat to stop
+            # Check if configured version is 2.12.3 or above as it's the starting version that supports
+            #  upgrade_status field.
+            if [  "$METACAT_VERSION_CONFIGURED" = "`echo -e "$METACAT_VERSION_CONFIGURED\n$UPGRADE_STATUS_ABILITY_PRE_VERSION" | \
+            sort --version-sort | tail -n1`" ] && \
+            [ "$METACAT_VERSION_CONFIGURED" != "$UPGRADE_STATUS_ABILITY_PRE_VERSION" ]; then
+
+                # Wait until the upgrade is done.
+                NEXT_WAIT_TIME=0
+                UPGRADED=0
+                until [ $UPGRADED -eq 1 ]; do
+
+                   sleep $(( NEXT_WAIT_TIME++ ))
+
+                   # Wait for total of 5 minutes (Sigma 24) seconds before timeout and
+                   # increase wait time every time gradually.
+                   if  [ $NEXT_WAIT_TIME -eq 24 ]; then
+                        echo "****************************************************************************"
+                        echo "******************************** ERROR *************************************"
+                        echo "ERROR: The metacat upgrade is taking too long."
+                        echo "   You may try to pass the MANUAL_UPGRADE variable in the docker-compose with 1 to upgrade "
+                        echo "   metacat manually"
+                        echo "****************************************************************************"
+                        echo "****************************************************************************"
+                        exit -1
+                   fi
+
+                   # Get Node capabilities from metacat
+                   NODE_CAPABILITIES_XML=`curl --insecure -X GET http://localhost:8080/catalog/d1/mn/v2/node`
+                   UPGRADE_STATUS=`xmllint --xpath '//property[@key="upgrade_status"]/text()' - <<< $NODE_CAPABILITIES_XML`
+                   CURRENT_METACAT_VERSION=`xmllint --xpath '//property[@key="metacat_version"]/text()' - <<< $NODE_CAPABILITIES_XML`
+
+                   if  [ "$UPGRADE_STATUS" = "success" ]; then
+                        echo "***************************************************************************"
+                        echo "************************* Upgrade successful ******************************"
+                        echo "Metacat now finished the upgrade."
+                        echo " Metacat upgraded version is ${CURRENT_METACAT_VERSION} "
+                        echo "****************************************************************************"
+                        echo "****************************************************************************"
+                        UPGRADED=1
+                   fi
+                done
+
+            else
+
+               # if this is an older version than 2.12.3, sleep for 10 seconds until the upgrade finishes
+               sleep 10
+
+            fi
+
+            # Saving tomcat PID in a file to be read by the shutdown script
+            echo `ps h -C java -o "%p:%a" | grep catalina | cut -d: -f1` > /usr/local/tomcat/logs/tomcat.pid
+
+            # Setting the path of the tomcat process id file in a tomcat's special environment variable
+            export CATALINA_PID=/usr/local/tomcat/logs/tomcat.pid
+
             echo
             echo '**************************************'
             echo "Waiting for Tomcat to stop before"
             echo "restarting after upgrade/initialization"
             echo '**************************************'
             echo
-            sleep 10
 
+            # Shutdown tomcat background process taking hold of port 8080 and ignore exit signal
+            # Note: after the shutdown script runs it removes the created file above (tomcat.pid) as it would be
+            # deprecated.
+            ./bin/catalina.sh stop 30 -force > /dev/null 2>&1 || true
+
+
+            echo
+            echo '**************************************'
+            echo "Waiting for port 8080 to be available..."
+            echo '**************************************'
+
+            # Set to 60 to timeout after 1 minute of waiting.
+            TIMEOUT=600
+            while nc -z localhost 8080; do
+               sleep 0.1
+               (( TIMEOUT-- ))
+               if  [ $TIMEOUT -eq 0 ]; then
+                    echo "****************************************************************************"
+                    echo "******************************** WARNING ***********************************"
+                    echo "WARNING: entrypoint script waited for more than 60 seconds but port 8080 was"
+                    echo " still not available."
+                    echo "*** STARTING TOMCAT ANYWAY ***"
+                    echo "****************************************************************************"
+                    echo "****************************************************************************"
+                    break
+               fi
+            done
+
+            if  [ $TIMEOUT -ne 0 ]; then
+                echo '**************************************'
+                echo "Port 8080 is now available"
+                echo "Proceeding to starting tomcat"
+                echo '**************************************'
+            fi
 
             # Start tomcat
             $@ > /dev/null 2>&1
