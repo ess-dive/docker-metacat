@@ -239,7 +239,9 @@ if [ "$1" = 'bin/catalina.sh' ]; then
     echo "checking upgrade/initialization status"
     echo '**************************************'
     echo
-    sleep 10
+    while ! nc -z localhost 8080; do
+      sleep 0.1
+    done
 
 
     # Login to Metacat Admin and start a session (cookie.txt)
@@ -335,62 +337,39 @@ if [ "$1" = 'bin/catalina.sh' ]; then
 
             fi
 
+
+            echo
+            echo '**************************************'
+            echo "Waiting for Tomcat to stop "
+            echo "after upgrade/initialization"
+            echo '**************************************'
+            echo
+
+            # Shutdown tomcat background process taking hold of port 8080 and put it in the background
             # Saving tomcat PID in a file to be read by the shutdown script
-            echo `ps h -C java -o "%p:%a" | grep catalina | cut -d: -f1` > /usr/local/tomcat/logs/tomcat.pid
-
-            # Setting the path of the tomcat process id file in a tomcat's special environment variable
-            export CATALINA_PID=/usr/local/tomcat/logs/tomcat.pid
+            echo `ps h -C java -o "%p:%a" | grep catalina | cut -d: -f1` > /tmp/tomcat.pid
+            CATALINA_PID=/tmp/tomcat.pid ./bin/catalina.sh stop 120 -force > /dev/null 2>&1 &
 
             echo
             echo '**************************************'
-            echo "Waiting for Tomcat to stop before"
-            echo "restarting after upgrade/initialization"
-            echo '**************************************'
-            echo
-
-            # Shutdown tomcat background process taking hold of port 8080 and ignore exit signal
-            # Note: after the shutdown script runs it removes the created file above (tomcat.pid) as it would be
-            # deprecated.
-            ./bin/catalina.sh stop 30 -force > /dev/null 2>&1 || true
-
-
-            echo
-            echo '**************************************'
-            echo "Waiting for port 8080 to be available..."
+            echo "Waiting for ports 8080,8009,5701 to be released..."
             echo '**************************************'
 
-            # Set to 60 to timeout after 1 minute of waiting.
-            TIMEOUT=600
-            while nc -z localhost 8080; do
+            # Wait for ports  to be released (metacat, hazelcast and apr )
+            #   NOTE: This does not perfectly tell us that tomcat is down but
+            #   it is our best guess.  The catalina.sh script does not stop the
+            #   tomcat process which makes it difficult to determine when tomcat is down.
+            while nc -z localhost 8080 || nc -z localhost 8009 || nc -z localhost 5701; do
                sleep 0.1
-               (( TIMEOUT-- ))
-               if  [ $TIMEOUT -eq 0 ]; then
-                    echo "****************************************************************************"
-                    echo "******************************** WARNING ***********************************"
-                    echo "WARNING: entrypoint script waited for more than 60 seconds but port 8080 was"
-                    echo " still not available."
-                    echo "*** STARTING TOMCAT ANYWAY ***"
-                    echo "****************************************************************************"
-                    echo "****************************************************************************"
-                    break
-               fi
             done
-
-            if  [ $TIMEOUT -ne 0 ]; then
-                echo '**************************************'
-                echo "Port 8080 is now available"
-                echo "Proceeding to starting tomcat"
-                echo '**************************************'
-            fi
-
-            # Start tomcat
-            $@ > /dev/null 2>&1
 
             echo
             echo '***********************************'
             echo "Upgraded/Initialized the metacat DB"
+            echo "      RESTART the CONTAINER        "
             echo '***********************************'
             echo
+            exit
         else
             echo
             echo '**************************************'
