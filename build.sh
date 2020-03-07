@@ -56,9 +56,15 @@ IMAGE_VERSION_CONTENT="$(cd $DIR && git log -n 1 --pretty="commit_count:  $(git 
 echo "$IMAGE_VERSION_CONTENT" > $DIR/image_version.yml
 cat $DIR/image_version.yml
 
-echo "docker build ${BUILD_ARGS} -t metacat:$DOCKER_TAG $DIR"
-docker pull tomcat:7.0-jre8
-docker build ${BUILD_ARGS} -t metacat:${DOCKER_TAG} $DIR
-docker tag metacat:${DOCKER_TAG} metacat
-docker tag metacat:${DOCKER_TAG} ${REGISTRY_SPIN}/metacat:${DOCKER_TAG}
 
+# Determine if there is an image registry
+IMAGE_NAME="metacat:${DOCKER_TAG}"
+if [ "${REGISTRY_SPIN}" != "" ];
+then
+  # There is a spin registry
+  IMAGE_NAME="${REGISTRY_SPIN}/${IMAGE_NAME}"
+fi
+
+echo "docker build --no-cache  -t ${IMAGE_NAME} $BUILD_ARGS $DIR"
+docker pull tomcat:7.0-jre8
+docker build ${DOCKER_BUILD_OPTIONS}  -t ${IMAGE_NAME} $BUILD_ARGS $DIR
