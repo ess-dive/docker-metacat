@@ -7,10 +7,15 @@ ARG METACAT_UID=108
 ARG METACAT_GID=121
 
 ENV METACAT_APP_CONTEXT=metacat
+ENV DB_HOST=db
+ENV DB_PORT=5432
+ENV DB_SOLR_HOST=db-solr
+ENV DB_SOLR_PORT=8983
 ARG METACAT_VERSION=2.8.7
-ADD /metacat-bin-${METACAT_VERSION}.tar.gz /tmp/
-ADD catalina.properties /tmp/
-ADD server.xml.patch /tmp/
+ADD metacat-bin-${METACAT_VERSION}.tar.gz /tmp/
+ADD metacat/catalina.properties /tmp/
+ADD metacat/server.xml.patch /tmp/
+ADD metacat/skins /tmp/skins
 ADD image_version.yml image_version.yml
 
 
@@ -28,15 +33,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && cp /tmp/metacat.war /tmp/metacat-index.war /usr/local/tomcat/webapps \
     && cat /tmp/catalina.properties >> /usr/local/tomcat/conf/catalina.properties
 
-ADD metacat.conf /etc/logrotate.d/
+ADD metacat/metacat.conf /etc/logrotate.d/
 
-COPY apply_config.py /usr/local/bin/
+COPY metacat/apply_config.py /usr/local/bin/
 RUN ln -s usr/local/bin/apply_config.py / # backwards compat
 
-COPY apply_context.py /usr/local/bin/
+COPY metacat/apply_context.py /usr/local/bin/
 RUN ln -s usr/local/bin/apply_context.py / # backwards compat
 
-COPY docker-entrypoint.sh /usr/local/bin/
+COPY metacat/docker-entrypoint.sh /usr/local/bin/
 RUN ln -s usr/local/bin/docker-entrypoint.sh / # backwards compat
 ENTRYPOINT ["docker-entrypoint.sh"]
 
@@ -47,8 +52,7 @@ RUN patch conf/server.xml /tmp/server.xml.patch
 RUN groupadd -g ${METACAT_GID} metacat && \
     useradd -u ${METACAT_UID} -g ${METACAT_GID} -c 'Metacat User'  --no-create-home metacat && \
     mkdir -p /var/metacat && \
-    mkdir -p /var/metacat-fast && \
-    chown -R metacat:metacat /var/metacat /var/metacat-fast logs temp work && \
+    chown -R metacat:metacat /var/metacat logs temp work && \
     chown -R metacat:metacat /usr/local/tomcat/conf && \
     chown metacat:metacat /usr/local/tomcat/webapps  && \
     chmod g+s  /usr/local/tomcat/webapps   && \

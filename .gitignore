@@ -1,5 +1,4 @@
-.idea/
+*.tar.gz
+*.war
+.DS_Store
 image_version.yml
-metacat-bin-*.tar.gz
-metacat*.properties
-test.properties

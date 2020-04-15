@@ -29,42 +29,88 @@ then
 fi
 
 
-VERSION=$1
+
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
 
+#Read the split words into an array based on space delimiter
+VERSION=$1
+IFS='.' read -a version_array <<< "${VERSION}"
 
-# Get Metacat
-METACAT=metacat-bin-${VERSION}
-ARCHIVE=${METACAT}.tar.gz
+if [ ${#version_array[*]} -lt 3 ];
+then
+  echo "ERROR: Version ${VERSION} must be three numbers it is ${#version_array[*]}"
+  exit
+fi
+version_major=${version_array[0]}
+version_minor=${version_array[1]}
+echo "INFO: Metacat major:$version_major minor:$version_minor"
 
-BUILD_ARGS="${BUILD_ARGS} --build-arg METACAT_VERSION=${VERSION}"
 
-if [ ! -f  $DIR/${ARCHIVE} ];
+# Check the version number
+# Continue if form Metacat 2.13 and greater
+if [ $version_major -eq 2 ] && [ $version_minor -ge 13 ] || [ $version_major -ge 3 ];
 then
 
-    wget  http://knb.ecoinformatics.org/software/dist/${ARCHIVE} -O $DIR/${ARCHIVE}
+  # Get Metacat
+  METACAT=metacat-bin-${VERSION}
+  ARCHIVE=${METACAT}.tar.gz
+
+  BUILD_ARGS="${BUILD_ARGS} --build-arg METACAT_VERSION=${VERSION}"
+
+  # Get the metacat distribution
+  if [ ! -f  "$DIR/${ARCHIVE}" ];
+  then
+      wget  http://knb.ecoinformatics.org/software/dist/${ARCHIVE} -O $DIR/${ARCHIVE}
+
+  fi
+
+  # create the docker tag
+  DOCKER_TAG="${VERSION}-p$(cd $DIR; git rev-list HEAD --count)"
+
+  # CREATE image_version.yml
+  echo "****************************"
+  echo "BUILDING image_version"
+  echo "****************************"
+  IMAGE_VERSION_CONTENT="$(cd $DIR && git log -n 1 --pretty="commit_count:  $(git rev-list HEAD --count)%ncommit_hash:   %h%nsubject:       %s%ncommitter:     %cN <%ce>%ncommiter_date: %ci%nauthor:        %aN <%ae>%nauthor_date:   %ai%nref_names:     %D" )"
+  echo "$IMAGE_VERSION_CONTENT" > $DIR/image_version.yml
+  cat $DIR/image_version.yml
+
+
+  # Determine if there is an image registry
+  IMAGE_NAME="metacat:${DOCKER_TAG}"
+  if [ "${REGISTRY_SPIN}" != "" ];
+  then
+    # There is a spin registry
+    IMAGE_NAME="${REGISTRY_SPIN}/${IMAGE_NAME}"
+  fi
+
+  echo "docker build ${DOCKER_BUILD_OPTIONS} -f $DIR/metacat/Dockerfile -t ${IMAGE_NAME} $BUILD_ARGS $DIR/"
+  docker build ${DOCKER_BUILD_OPTIONS} -f $DIR/metacat/Dockerfile -t ${IMAGE_NAME} $BUILD_ARGS $DIR/
+
+
+  rm -rf $DIR/metacat-index.war $DIR/solr/WEB-INF
+
+  # Get the solr config from the index war file for solr image
+  tar -xvf  $DIR/${ARCHIVE} --directory $DIR metacat-index.war
+  unzip "$DIR/metacat-index.war" "WEB-INF/classes/solr-home/conf/*" -d "$DIR/solr"
+
+  # create the docker tag
+  DOCKER_TAG="${VERSION}-8.4.1-p$(cd $DIR; git rev-list HEAD --count)"
+
+  # Determine if there is an image registry
+  IMAGE_NAME="metacat-solr:${DOCKER_TAG}"
+  if [ "${REGISTRY_SPIN}" != "" ];
+  then
+    # There is a spin registry
+    IMAGE_NAME="${REGISTRY_SPIN}/${IMAGE_NAME}"
+  fi
+
+  echo "docker build ${DOCKER_BUILD_OPTIONS} -f $DIR/solr/Dockerfile -t ${IMAGE_NAME} $BUILD_ARGS $DIR/"
+  docker pull solr:8.4.1
+  docker build ${DOCKER_BUILD_OPTIONS} -f $DIR/solr/Dockerfile -t ${IMAGE_NAME} $BUILD_ARGS $DIR/
+else
+
+  echo "ERROR: Metacat Version $VERSION not supported anymore. Please use Metacat>=2.13.0"
+
 fi
 
-# create the docker tag
-DOCKER_TAG="${VERSION}-p$(cd $DIR; git rev-list HEAD --count)"
-
-# CREATE image_version.yml
-echo "****************************"
-echo "BUILDING image_version"
-echo "****************************"
-IMAGE_VERSION_CONTENT="$(cd $DIR && git log -n 1 --pretty="commit_count:  $(git rev-list HEAD --count)%ncommit_hash:   %h%nsubject:       %s%ncommitter:     %cN <%ce>%ncommiter_date: %ci%nauthor:        %aN <%ae>%nauthor_date:   %ai%nref_names:     %D" )"
-echo "$IMAGE_VERSION_CONTENT" > $DIR/image_version.yml
-cat $DIR/image_version.yml
-
-
-# Determine if there is an image registry
-IMAGE_NAME="metacat:${DOCKER_TAG}"
-if [ "${REGISTRY_SPIN}" != "" ];
-then
-  # There is a spin registry
-  IMAGE_NAME="${REGISTRY_SPIN}/${IMAGE_NAME}"
-fi
-
-echo "docker build --no-cache  -t ${IMAGE_NAME} $BUILD_ARGS $DIR"
-docker pull tomcat:7.0-jre8
-docker build ${DOCKER_BUILD_OPTIONS}  -t ${IMAGE_NAME} $BUILD_ARGS $DIR

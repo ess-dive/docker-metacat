@@ -20,6 +20,15 @@ if [ "$1" = 'bin/catalina.sh' ]; then
 
     echo
     echo '**************************************'
+    echo "Waiting for Solr to start "
+    echo '**************************************'
+    echo
+    while ! nc -z "${DB_SOLR_HOST:-db-solr}" "${DB_SOLR_PORT:-8983}"; do
+      sleep 0.1
+    done
+
+    echo
+    echo '**************************************'
     echo "Logrotating catalina.out"
     echo '**************************************'
     echo
@@ -61,7 +70,7 @@ if [ "$1" = 'bin/catalina.sh' ]; then
 
     DEFAULT_PROPERTIES_FILE=${METACAT_DIR}/WEB-INF/metacat.properties
     APP_PROPERTIES_FILE=${APP_PROPERTIES_FILE:-/config/app.properties}
-    METACATUI_CUSTOM_SKINS_PATH=/config/skins
+    METACATUI_CUSTOM_SKINS_PATH=/tmp/skins
     METACAT_VERSION_CONFIGURED=`grep application.metacatVersion $DEFAULT_PROPERTIES_FILE | sed 's/[^:]*=//'`
 
 
@@ -142,13 +151,13 @@ if [ "$1" = 'bin/catalina.sh' ]; then
 
     # Make sure all default directories are available and owned by metacat
     [ `stat -c '%U:%G' /var/metacat`      = 'metacat:metacat' ] || chown metacat:metacat /var/metacat
-    [ `stat -c '%U:%G' /var/metacat-fast` = 'metacat:metacat' ] || chown metacat:metacat /var/metacat-fast
 
     mkdir -p /var/metacat/data \
         /var/metacat/inline-data \
         /var/metacat/documents \
         /var/metacat/temporary \
-        /var/metacat/logs
+        /var/metacat/logs \
+        /var/metacat/solr-temp
 
     # Look for Tomcat Configuration to copy
     if [ -d /config/conf ];
@@ -160,32 +169,7 @@ if [ "$1" = 'bin/catalina.sh' ]; then
         done
     fi
 
-
-    # Initialize the solr home directory
-    SOLR_CONF_LOCATION=/var/metacat-fast/solr-home
-    if [ ! -d ${SOLR_CONF_LOCATION} ];
-    then
-
-        # Setup env for Here Document
-        SOLR_CONF_DEFAULT_LOCATION=/usr/local/tomcat/webapps/metacat-index/WEB-INF/classes/solr-home
-        USER_PWFILE="/var/metacat/users/password.xml"
-        SOLR_CONF_FILES=`bash -c "cd ${SOLR_CONF_DEFAULT_LOCATION} && find ."`
-
-        echo "INFO SOLR_CONF_LOCATION ${SOLR_CONF_LOCATION}"
-        bash -c "mkdir -p $SOLR_CONF_LOCATION"
-
-        for SOLR_FILE in ${SOLR_CONF_FILES[@]}
-        do
-        NEW_DIR=$(dirname $SOLR_CONF_LOCATION/$SOLR_FILE)
-
-        mkdir -p $NEW_DIR
-        if [ -f $SOLR_CONF_DEFAULT_LOCATION/$SOLR_FILE ] && [ ! -f $SOLR_CONF_LOCATION/$SOLR_FILE ];
-        then
-            echo "cp ${SOLR_CONF_DEFAULT_LOCATION}/$SOLR_FILE $SOLR_CONF_LOCATION/$SOLR_FILE"
-            cp ${SOLR_CONF_DEFAULT_LOCATION}/$SOLR_FILE $SOLR_CONF_LOCATION/$SOLR_FILE
-        fi
-        done
-    fi
+    USER_PWFILE="/var/metacat/users/password.xml"
 
     # If there is an admin/password set and it does not exist in the passwords file
     # set it

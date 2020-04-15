@@ -1,0 +1,5 @@
+.idea/
+conf/
+image_version.yml
+metacat-bin-*.tar.gz
+metacat*.properties
