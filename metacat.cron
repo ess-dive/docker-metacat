@@ -1,0 +1,1 @@
+30 2 * * * /usr/sbin/logrotate -s /usr/local/tomcat/logs/status /usr/local/tomcat/conf/metacat_logrotate.conf > /dev/null 2>&1
