@@ -12,6 +12,8 @@ ADD /metacat-bin-${METACAT_VERSION}.tar.gz /tmp/
 ADD catalina.properties /tmp/
 ADD server.xml.patch /tmp/
 ADD image_version.yml image_version.yml
+ADD metacat_logrotate.conf /usr/local/tomcat/conf/
+ADD metacat.cron /usr/local/tomcat/conf/
 
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -23,6 +25,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         net-tools \
         telnetd \
         procps \
+        logrotate \
     && rm -rf /var/lib/apt/lists/* \
     && cp /tmp/metacat.war /tmp/metacat-index.war /usr/local/tomcat/webapps \
     && cat /tmp/catalina.properties >> /usr/local/tomcat/conf/catalina.properties
@@ -51,10 +54,14 @@ RUN groupadd -g ${METACAT_GID} metacat && \
     chmod g+s  /usr/local/tomcat/webapps   && \
     chmod +r+g conf/*
 
+
 EXPOSE 8080
 EXPOSE 8009
 EXPOSE 8443
 
 USER metacat
+
+# Set up crontab for log rotation of catalina.out
+RUN (crontab -u metacat -l; cat /usr/local/tomcat/conf/metacat.cron) | crontab -u metacat -
 
 CMD ["bin/catalina.sh","start"]
