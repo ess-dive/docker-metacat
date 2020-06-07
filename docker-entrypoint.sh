@@ -19,10 +19,13 @@ if [ "$1" = 'bin/catalina.sh' ]; then
     done
 
 
+    METACAT_CONF_DIR=/usr/local/tomcat/conf
     METACAT_DEFAULT_WAR=/usr/local/tomcat/webapps/metacat.war
     METACAT_DIR=/usr/local/tomcat/webapps/${METACAT_APP_CONTEXT}
     METACAT_WAR=${METACAT_DIR}.war
     METACATUI_BASE_SKIN_PATH=/usr/local/tomcat/webapps/catalog/style/skins/metacatui
+    DEFAULT_LOGROTATE=${METACAT_CONF_DIR}/metacat_logrotate.conf
+    DEFAULT_CRON=${METACAT_CONF_DIR}/metacat.cron
 
     # The following constant defines the last version before the metacat version that supports the upgrade status
     # ability in metacat node capabilities. This is used to enable the script to learn when to use the node capability
@@ -134,6 +137,29 @@ if [ "$1" = 'bin/catalina.sh' ]; then
         echo "   exists in the container filesystem."
         exit -2
     fi
+
+    if [ -s $METACAT_LOGROTATE_CONF ];
+    then
+        apply_config.py --logrotate $METACAT_LOGROTATE $DEFAULT_LOGROTATE
+        
+        echo 
+        echo '**********************************************************'
+        echo "Modifying $DEFAULT_LOGROTATE "
+        echo '***********************************************************'
+        echo
+    fi
+
+    if [ -s $METACAT_CRON ];
+    then
+        apply_config.py --cron $METACAT_CRON $DEFAULT_CRON
+        (crontab -u metacat -l; cat $DEFAULT_CRON) | crontab -u metacat -
+        echo
+        echo '**********************************************************'
+        echo "Modifying $DEFAULT_CRON"
+        echo '***********************************************************'
+        echo
+    fi
+
 
     # Make sure all default directories are available and owned by metacat
     [ `stat -c '%U:%G' /var/metacat`      = 'metacat:metacat' ] || chown metacat:metacat /var/metacat
