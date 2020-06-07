@@ -62,6 +62,7 @@ EXPOSE 8443
 USER metacat
 
 # Set up crontab for log rotation of catalina.out
+# Line found here: https://serverfault.com/questions/296949/programmatically-add-entry-to-users-crontab
 RUN (crontab -u metacat -l; cat /usr/local/tomcat/conf/metacat.cron) | crontab -u metacat -
 
 CMD ["bin/catalina.sh","start"]
