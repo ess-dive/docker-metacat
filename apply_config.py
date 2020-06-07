@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+
 from __future__ import absolute_import, division, print_function
 '''
     File name: apply_config.py
@@ -8,6 +9,7 @@ from __future__ import absolute_import, division, print_function
     Python Version: 2.7
 '''
 
+import argparse
 import sys
 import os
 import uuid
@@ -69,22 +71,128 @@ def get_properties(properties_file, include_comments=False, expand_variables=Fal
     return properties
 
 
+def parse_cron(config_file, expand_variables=False, include_comments=False):
+    """
+    Returns the contents of a cron file as a list.
+    """
+
+    # Since cron files define their jobs through single lines, this just
+    # uses readlines to return the content. Implementing an actual cronfile
+    # parser is a lot of work and might require importing a library.
+    cron_conf = OrderedDict()
+    cron_entry_count = 0
+    with open(config_file) as f:
+        for line in f:
+            if not line.startswith("#"):
+                cron_conf[cron_entry_count] = line.strip()
+                if expand_variables:
+                    cron_conf[cron_entry_count] = os.path.expandvars(cron_conf[cron_entry_count])
+                cron_entry_count += 1
+            elif include_comments:
+                cron_conf["#{}".format(uuid.uuid4())] = line.strip()
+    return cron_conf
+
+
+def parse_logrotate(config_file, expand_variables=False, include_comments=False):
+    """
+    Parse and return the contents of a logrotate configuration file.
+    """
+    logrotate_conf = OrderedDict()
+    with open(config_file) as f:
+        for line in f:
+            if not line.startswith("#"):
+                keys = line.strip().split()
+                if expand_variables:
+                    logrotate_conf[num] = os.path.expandvars(logrotate_conf[num])
+            elif include_comments:
+                logrotate_conf[num] = line.strip()
+    return logrotate_conf
+
+
+def get_config_parameters_with_variables(config_file, config_type):
+    if config_type == "cron":
+        return parse_cron(config_file, expand_variables=True)
+    elif config_type == "logrotate":
+        return parse_logrotate(config_file, expand_variables=True)
+    else:
+        return get_properties(config_file, expand_variables=True)
+
+
+def get_config_parameters_with_comments(config_file, config_type):
+    if config_type == "cron":
+        return parse_cron(config_file, include_comments=True)
+    elif config_type == "logrotate":
+        return parse_logrotate(config_file, include_comments=True)
+    else:
+        return get_properties(config_file, include_comments=True)
+
+
+def config_diff(new_config, default_config):
+    return set(new_config.keys()).difference(set(default_config.keys()))
+
+
+def write_properties(app_conf, default_conf, default_conf_file):
+    with open(default_conf_file,'w') as f:
+        for key, value in default_conf.items():
+            if key in app_conf.keys():
+                value = app_conf[key]
+
+            if key.startswith("#"):
+                f.write("{}\n".format(value))
+            else:
+                f.write("{}={}\n".format(key,value))
+
+
+def write_cron(app_conf, default_conf, default_conf_file):
+    #TODO: If the original file has comments and the new one doesnt
+    # this will fail because they key is not in default
+    # ie the default will have a key of 1 and the new one will have a key
+    # of 0 because of the addition of comments
+    with open(default_conf_file, 'w') as f:
+        for key, value in default_conf.items():
+            if key in app_conf.items():
+                value = app_conf[key] 
+                f.write("{}\n".format(value))
+
+
+def write_logrotate(app_conf, default_conf, default_conf_file):
+    with open(default_conf_file, 'w') as f:
+        for key, value in default_conf.items():
+            if key in app_conf.ites():
+                value = app_conf[key]
+                f.write("{}\n".format(value))
+
+
+def write(new_conf, default_conf, filename, conf_type):
+    if conf_type == "cron":
+        write_cron(new_conf, default_conf, filename)
+    elif conf_type == "logrotate":
+        write_logrotate(new_conf, default_conf, filename)
+    else:
+        write_properties(new_conf, default_conf, filename)
+
+
 if __name__ == "__main__":
 
     # Check for args
-    if len(sys.argv) < 3:
-        print("Usage: {} <app_properties_file> <default_properties_file>".format(sys.argv[0]),file=sys.stderr)
-        sys.exit(-1)
+    parser = argparse.ArgumentParser(description="Merge configuration files")
+    parser.add_argument("new_config_file", help="Configuration file that contains changes to merged in")
+    parser.add_argument("default_config_file", help="Configuration file that holds the default values")
+    parser.add_argument("-t", "--type", help="The type of the configuration file")
 
-    app_properties_file=sys.argv[1]
-    metacat_properties_file = sys.argv[2]
+    args = parser.parse_args()
 
-    # Load the application and metacat properties in dictionaries
-    app_properties = get_properties(app_properties_file, expand_variables=True)
-    metacat_properties = get_properties(metacat_properties_file, include_comments=True)
+    app_config_file = args.new_config_file
+    default_config_file = args.default_config_file
+    config_type = args.type
+
+    # Load the default configuration and the new configuration
+    app_conf = get_config_parameters_with_variables(app_config_file, config_type)
+    default_conf = get_config_parameters_with_comments(default_config_file, config_type)
 
     # Check to see if the application properties exist in the metacat properties
-    difference = set(app_properties.keys()).difference(set(metacat_properties.keys()))
+    difference = config_diff(app_conf, default_conf)
+
     if len(difference) > 0:
         print("The following properties do not exist in '{}':".format(metacat_properties_file), file=sys.stderr)
         for p in difference:
@@ -92,16 +200,4 @@ if __name__ == "__main__":
         sys.exit(-4)
 
     # Merge the application and metacat properties
-    with open(metacat_properties_file,'w') as f:
-        for key, value in metacat_properties.items():
-            if key in app_properties.keys():
-                value=app_properties[key]
-
-            if key.startswith("#"):
-                f.write("{}\n".format(value))
-
-            else:
-                f.write("{}={}\n".format(key,value))
-
-
-
+    write(app_conf, default_conf, default_config, config_type)
