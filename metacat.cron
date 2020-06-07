@@ -1,1 +1,2 @@
+# This line was discovered in a thread here: https://askubuntu.com/questions/405663/configuring-logrotate-without-root-access-per-user-log-rotation
 30 2 * * * /usr/sbin/logrotate -s /usr/local/tomcat/logs/status /usr/local/tomcat/conf/metacat_logrotate.conf > /dev/null 2>&1
