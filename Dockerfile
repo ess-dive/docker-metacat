@@ -1,4 +1,4 @@
-FROM tomcat:7.0-jre8
+FROM tomcat:9.0-jdk8
 
 # Debian Tomcat UID
 ARG METACAT_UID=108
