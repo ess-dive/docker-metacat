@@ -23,9 +23,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         net-tools \
         telnetd \
         procps \
+        logrotate \
     && rm -rf /var/lib/apt/lists/* \
     && cp /tmp/metacat.war /tmp/metacat-index.war /usr/local/tomcat/webapps \
     && cat /tmp/catalina.properties >> /usr/local/tomcat/conf/catalina.properties
+
+ADD metacat.conf /etc/logrotate.d/
 
 COPY apply_config.py /usr/local/bin/
 RUN ln -s usr/local/bin/apply_config.py / # backwards compat
