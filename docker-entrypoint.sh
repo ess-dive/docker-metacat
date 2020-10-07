@@ -18,6 +18,12 @@ if [ "$1" = 'bin/catalina.sh' ]; then
       sleep 0.1
     done
 
+    echo
+    echo '**************************************'
+    echo "Logrotating catalina.out"
+    echo '**************************************'
+    echo
+    /usr/sbin/logrotate -s /usr/local/tomcat/logs/logrotate-status.log /etc/logrotate.d/metacat.conf
 
     METACAT_DEFAULT_WAR=/usr/local/tomcat/webapps/metacat.war
     METACAT_DIR=/usr/local/tomcat/webapps/${METACAT_APP_CONTEXT}
@@ -111,7 +117,6 @@ if [ "$1" = 'bin/catalina.sh' ]; then
     if [  ! -z "$ADMINPASS_FILE"  ] && [ -s $ADMINPASS_FILE ];then
         ADMINPASS=`cat $ADMINPASS_FILE`
     fi
-
 
     # Look for the properties file
     if [ -s $APP_PROPERTIES_FILE ];
