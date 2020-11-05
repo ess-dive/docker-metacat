@@ -23,7 +23,7 @@ if [ "$1" = 'bin/catalina.sh' ]; then
     echo "Logrotating catalina.out"
     echo '**************************************'
     echo
-    /usr/sbin/logrotate -s /usr/local/tomcat/logs/logrotate-status.log /etc/logrotate.d/metacat.conf
+    /usr/sbin/logrotate -s /usr/local/tomcat/logs/logrotate-status.log /etc/logrotate.d/metacat.conf &
 
     METACAT_DEFAULT_WAR=/usr/local/tomcat/webapps/metacat.war
     METACAT_DIR=/usr/local/tomcat/webapps/${METACAT_APP_CONTEXT}
