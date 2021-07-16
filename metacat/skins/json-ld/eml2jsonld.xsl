@@ -276,7 +276,9 @@
             ,"distribution": [
             <xsl:for-each select="dataset/otherEntity">
                 {"name":"<xsl:value-of select="entityName"/>",
-                "encodingFormat":"<xsl:value-of select="entityType"/>"}
+                "encodingFormat":"<xsl:value-of select="entityType"/>"<xsl:if test="@id">,
+                "identifier": "<xsl:value-of select="@id"/>"
+                </xsl:if>}
                 <xsl:if test="position() != last()">
                     <xsl:text>,</xsl:text>
                 </xsl:if>
