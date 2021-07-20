@@ -1,4 +1,5 @@
-FROM solr:8.9
+ARG SOLR_VERSION=8.4.1
+FROM solr:${SOLR_VERSION}
 
 ADD image_version.yml image_version.yml
 ADD solr/WEB-INF/classes/solr-home/conf /tmp/conf

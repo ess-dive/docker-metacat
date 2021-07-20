@@ -6,6 +6,8 @@ if [ -z $1 ] ;
     echo "Usage: $0 <version> (<uid> <gid>)"
     exit
 fi
+SOLR_VERSION=8.9
+BUILD_ARGS="${BUILD_ARGS} --build-arg SOLR_VERSION=$SOLR_VERSION"
 
 BUILD_ARGS=""
 if [ ! -z $2 ] ;
@@ -95,7 +97,7 @@ then
   unzip "$DIR/metacat-index.war" "WEB-INF/classes/solr-home/conf/*" -d "$DIR/solr"
 
   # create the docker tag
-  DOCKER_TAG="${VERSION}-8.4.1-p$(cd $DIR; git rev-list HEAD --count)"
+  DOCKER_TAG="${VERSION}-${SOLR_VERSION}-p$(cd $DIR; git rev-list HEAD --count)"
 
   # Determine if there is an image registry
   IMAGE_NAME="metacat-solr:${DOCKER_TAG}"
@@ -106,7 +108,7 @@ then
   fi
 
   echo "docker build ${DOCKER_BUILD_OPTIONS} -f $DIR/solr/Dockerfile -t ${IMAGE_NAME} $BUILD_ARGS $DIR/"
-  docker pull solr:8.4.1
+  docker pull solr:${SOLR_VERSION}
   docker build ${DOCKER_BUILD_OPTIONS} -f $DIR/solr/Dockerfile -t ${IMAGE_NAME} $BUILD_ARGS $DIR/
 else
 
