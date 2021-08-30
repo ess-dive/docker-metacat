@@ -13,6 +13,7 @@
     <xsl:param name="catalogURL"><![CDATA[https://]]><xsl:value-of select="$serverName" /></xsl:param>
     <xsl:param name="viewURL"><xsl:value-of select="$catalogURL"/><![CDATA[/view]]></xsl:param>
     <xsl:param name="url"><xsl:value-of select="$viewURL" /><![CDATA[/]]><xsl:value-of select="$pid" /></xsl:param>
+    <xsl:param name="objectURL"><xsl:value-of select="$catalogURL" /><![CDATA[/catalog/d1/mn/v2/object]]></xsl:param>
 
     <xsl:template match="@* | node()">
 
@@ -275,9 +276,11 @@
         <xsl:if test="dataset/otherEntity">
             ,"distribution": [
             <xsl:for-each select="dataset/otherEntity">
-                {"name":"<xsl:value-of select="entityName"/>",
+                {"@type":"DataDownload",
+                "name":"<xsl:value-of select="entityName"/>",
                 "encodingFormat":"<xsl:value-of select="entityType"/>"<xsl:if test="@id">,
-                "identifier": "<xsl:value-of select="@id"/>"
+                "identifier": "<xsl:value-of select="@id"/>",
+                "contentUrl": "<xsl:value-of select="$objectURL" /><![CDATA[/]]><xsl:value-of select="@id"/>"
                 </xsl:if>}
                 <xsl:if test="position() != last()">
                     <xsl:text>,</xsl:text>
