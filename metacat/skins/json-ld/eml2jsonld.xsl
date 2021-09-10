@@ -219,7 +219,7 @@
             <xsl:if test="dataset/contact[position() = 1]/userId">"@id": "<xsl:call-template name="transform-string"><xsl:with-param name="content" select="dataset/contact[position() = 1]/userId"/></xsl:call-template>",
             </xsl:if>
             "name": "<xsl:call-template name="transform-string"><xsl:with-param name="content" select="dataset/contact[position() = 1]/individualName/givenName"/></xsl:call-template><xsl:text> </xsl:text><xsl:call-template name="transform-string"><xsl:with-param name="content" select="dataset/contact[position() = 1]/individualName/surName"/></xsl:call-template>",
-            "givenName": "<xsl:call-template name="transform-string"><xsl:with-param name="content" select="dataset/contact[position() = 1]/individualName/givenName"/></xsl:call-template> ",
+            "givenName": "<xsl:call-template name="transform-string"><xsl:with-param name="content" select="dataset/contact[position() = 1]/individualName/givenName"/></xsl:call-template>",
             "familyName": "<xsl:call-template name="transform-string"><xsl:with-param name="content" select="dataset/contact[position() = 1]/individualName/surName"/></xsl:call-template>"<xsl:if test="dataset/contact[position() = 1]/organizationName or dataset/contact[position() = 1]/electronicMailAddress ">
                 <xsl:text>,</xsl:text>
             </xsl:if>
