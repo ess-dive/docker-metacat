@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 set -e
-
+DEBUG=${DEBUG:0}
 if [ $DEBUG -eq 1 ];
 then
     set -x
@@ -198,7 +198,7 @@ if [ "$1" = 'bin/catalina.sh' ]; then
             ## Note: the Java bcrypt library only supports '2a' format hashes, so override the default python behavior
             ## so that the hases created start with '2a' rather than '2b'
             bash ./authFileManager.sh useradd \
-                -h "`python -c "import bcrypt; print bcrypt.hashpw('$ADMINPASS', bcrypt.gensalt(10,prefix='2a'))"`" \
+                -h "`python -c "import bcrypt; print(str(bcrypt.hashpw(b'$ADMINPASS', bcrypt.gensalt(10,prefix=b'\$2a\$')).decode()))"`" \
                 -dn "$ADMIN"
             cd /usr/local/tomcat
 
@@ -257,7 +257,7 @@ if [ "$1" = 'bin/catalina.sh' ]; then
 
 
     # Test the the admin logged in successfully
-	    [ -f /tmp/login_result.txt ] && [ $(grep "User logged in as:" /tmp/login_result.txt| wc -l) -eq 1 ] || (echo "Administrator not logged in!!" && [ ! $DEBUG -eq 1 ] &&  grep "<message>" /tmp/login_result.txt && exit -4)
+	    [ -f /tmp/login_result.txt ] && [ $(grep "User logged in as:" /tmp/login_result.txt| wc -l) -eq 1 ] || (echo "Administrator not logged in!!" &&  grep "<message>" /tmp/login_result.txt && exit -4)
 
     echo
     echo '**************************************'

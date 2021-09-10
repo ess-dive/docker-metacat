@@ -21,7 +21,7 @@ ADD image_version.yml image_version.yml
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
         patch \
-        python-bcrypt \
+        python3-bcrypt \
         vim \
         netcat \
         libxml2-utils \
@@ -43,6 +43,7 @@ RUN ln -s usr/local/bin/apply_context.py / # backwards compat
 
 COPY metacat/docker-entrypoint.sh /usr/local/bin/
 RUN ln -s usr/local/bin/docker-entrypoint.sh / # backwards compat
+RUN ln -s /usr/bin/python3 /usr/bin/python  # symbolic link to python
 ENTRYPOINT ["docker-entrypoint.sh"]
 
 # merge recommended settings for metacat into default configuration
