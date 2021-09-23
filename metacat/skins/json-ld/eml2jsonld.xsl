@@ -28,6 +28,56 @@
         "url": "<xsl:value-of select="$url"/>",
         "@type": "Dataset",
         "@id": "<xsl:value-of select="$url"/>",
+                <xsl:if test="dataset/annotation[propertyURI/@label='is identical to']">
+        "identifier": [<xsl:for-each select="dataset/annotation[propertyURI/@label='is identical to']">
+            {
+                "@type": "PropertyValue",
+                "propertyID": "DOI",
+                "value": "<xsl:call-template name="transform-string"><xsl:with-param name="content" select="valueURI/@label"/></xsl:call-template>"
+            }<xsl:if test="position() != last()">
+                <xsl:text>,</xsl:text>
+            </xsl:if>
+            </xsl:for-each>
+            ],
+        "sameAs": [<xsl:for-each select="dataset/annotation[propertyURI/@label='is identical to']">
+            "<xsl:call-template name="transform-string"><xsl:with-param name="content" select="valueURI"/></xsl:call-template>"<xsl:if test="position() != last()">
+                <xsl:text>,</xsl:text>
+            </xsl:if>
+            </xsl:for-each>
+            ],</xsl:if>
+        <xsl:if test="dataset/annotation[propertyURI/@label='is original form of']">
+        "archivedAt": [<xsl:for-each select="dataset/annotation[propertyURI/@label='is original form of']">
+            {
+                "@type": "WebPage",
+                "name": "<xsl:value-of select="valueURI/@label"/>",
+                "url": "<xsl:call-template name="transform-string"><xsl:with-param name="content" select="valueURI"/></xsl:call-template>"
+            }<xsl:if test="position() != last()">
+                <xsl:text>,</xsl:text>
+            </xsl:if>
+            </xsl:for-each>
+        ],</xsl:if>
+        <xsl:if test="dataset/annotation[propertyURI/@label='is derived from']">
+        "isBasedOn": [<xsl:for-each select="dataset/annotation[propertyURI/@label='is derived from']">
+            {
+                "@type": "Dataset",
+                "@id": "<xsl:value-of select="valueURI/@label"/>",
+                "url": "<xsl:call-template name="transform-string"><xsl:with-param name="content" select="valueURI"/></xsl:call-template>"
+            }<xsl:if test="position() != last()">
+                <xsl:text>,</xsl:text>
+            </xsl:if>
+            </xsl:for-each>
+        ],</xsl:if>
+        <xsl:if test="dataset/annotation[propertyURI/@label='has part']">
+        "hasPart": [<xsl:for-each select="dataset/annotation[propertyURI/@label='has part']">
+            {
+                "@type": "WebPage",
+                "name": "<xsl:value-of select="valueURI/@label"/>",
+                "url": "<xsl:call-template name="transform-string"><xsl:with-param name="content" select="valueURI"/></xsl:call-template>"
+            }<xsl:if test="position() != last()">
+                <xsl:text>,</xsl:text>
+            </xsl:if>
+            </xsl:for-each>
+            ],</xsl:if>
         "name": "<xsl:call-template name="transform-string"><xsl:with-param name="content" select="dataset/title"/></xsl:call-template>",
         "includedInDataCatalog": { "name": "<xsl:value-of select="$catalogName"/>",
                                    "url": "<xsl:value-of select="$catalogURL"/>",
@@ -104,7 +154,7 @@
         </xsl:if>
         <xsl:if test="dataset/pubDate">"datePublished": "<xsl:call-template name="transform-string"><xsl:with-param name="content" select="dataset/pubDate"/></xsl:call-template>",</xsl:if>
         "keywords": [
-        <xsl:for-each select="dataset/keywordSet[keywordThesaurus[contains(text(),'CATEGORICAL')]]">
+        <xsl:for-each select="dataset/keywordSet[keywordThesaurus[contains(text(),'CATEGORICAL')] or not(keywordThesaurus)]">
             <xsl:for-each select="keyword">
                 "<xsl:call-template name="transform-string"><xsl:with-param name="content" select="."/></xsl:call-template>"
                 <xsl:if test="position() != last()">
@@ -283,7 +333,7 @@
                 "contentUrl": "<xsl:value-of select="$objectURL" /><![CDATA[/]]><xsl:value-of select="@id"/>"
                 </xsl:if>}
                 <xsl:if test="position() != last()">
-                    <xsl:text>,</xsl:text>
+                <xsl:text>,</xsl:text>
                 </xsl:if>
             </xsl:for-each>
             ]

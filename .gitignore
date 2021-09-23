@@ -2,3 +2,5 @@
 *.war
 .DS_Store
 image_version.yml
+metacat/skins/metacatui
+style
