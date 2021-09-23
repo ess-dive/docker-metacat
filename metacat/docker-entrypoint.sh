@@ -94,12 +94,16 @@ if [ "$1" = 'bin/catalina.sh' ]; then
                 echo '**********************************************************'
                 echo "Copying base metacat skin properties files into ${skin_path}"
                 echo '***********************************************************'
-                echo
 
                 cp -Rv ${skin_path} ${METACAT_DIR}/style/skins/
 
-                cat $METACATUI_BASE_SKIN_PATH/metacatui.properties >> ${METACAT_DIR}/style/skins/${skin_name}/${skin_name}.properties
-                cp -v $METACATUI_BASE_SKIN_PATH/metacatui.properties.metadata.xml ${METACAT_DIR}/style/skins/${skin_name}/${skin_name}.properties.metadata.xml
+                if [ ! -f ${METACAT_DIR}/style/skins/${skin_name}/${skin_name}.properties ]; then
+                  cat $METACATUI_BASE_SKIN_PATH/metacatui.properties >> ${METACAT_DIR}/style/skins/${skin_name}/${skin_name}.properties
+                fi
+
+                if [ ! -f ${METACAT_DIR}/style/skins/${skin_name}/${skin_name}.properties.metadata.xml ]; then
+                  cp -v $METACATUI_BASE_SKIN_PATH/metacatui.properties.metadata.xml ${METACAT_DIR}/style/skins/${skin_name}/${skin_name}.properties.metadata.xml
+                fi
 
                 echo
                 echo '**********************************************************'

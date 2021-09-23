@@ -90,11 +90,17 @@ then
   docker build ${DOCKER_BUILD_OPTIONS} -f $DIR/metacat/Dockerfile -t ${IMAGE_NAME} $BUILD_ARGS $DIR/
 
 
-  rm -rf $DIR/metacat-index.war $DIR/solr/WEB-INF
+  rm -rf $DIR/metacat-index.war $DIR/metacat.war $DIR/solr/WEB-INF "$DIR/style/skins/metacatui/eml-2/eml-dataset.xsl"
 
   # Get the solr config from the index war file for solr image
   tar -xvf  $DIR/${ARCHIVE} --directory $DIR metacat-index.war
+  tar -xvf  $DIR/${ARCHIVE} --directory $DIR metacat.war
   unzip "$DIR/metacat-index.war" "WEB-INF/classes/solr-home/conf/*" -d "$DIR/solr"
+
+  # Patch eml-dataset.xsl with eml-dataset.xsl.patch for the current release
+  unzip "$DIR/metacat.war" "style/skins/metacatui/eml-2/eml-dataset.xsl"   -d "$DIR"
+  [ ! -f "$DIR/metacat/skins/metacatui/eml-2/" ] && mkdir -pv "$DIR/metacat/skins/metacatui/eml-2/"
+  patch -N $DIR/style/skins/metacatui/eml-2/eml-dataset.xsl  $DIR/metacat/eml-dataset.xsl.patch -o $DIR/metacat/skins/metacatui/eml-2/eml-dataset.xsl
 
   # create the docker tag
   DOCKER_TAG="${VERSION}-${SOLR_VERSION}-p$(cd $DIR; git rev-list HEAD --count)"

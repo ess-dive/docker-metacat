@@ -53,6 +53,7 @@ RUN patch conf/server.xml /tmp/server.xml.patch
 RUN groupadd -g ${METACAT_GID} metacat && \
     useradd -u ${METACAT_UID} -g ${METACAT_GID} -c 'Metacat User'  --no-create-home metacat && \
     mkdir -p /var/metacat && \
+    chown -R metacat:metacat /tmp/skins && \
     chown -R metacat:metacat /var/metacat logs temp work && \
     chown -R metacat:metacat /usr/local/tomcat/conf && \
     chown metacat:metacat /usr/local/tomcat/webapps  && \
