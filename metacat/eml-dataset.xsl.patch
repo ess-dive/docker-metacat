@@ -1,10 +1,10 @@
---- ./style/skins/metacatui/eml-2/eml-dataset.xsl	2021-03-15 17:27:26.000000000 -0700
-+++ metacat/skins/metacatui/eml-2/eml-dataset.xsl	2021-09-21 10:12:14.000000000 -0700
-@@ -60,22 +60,71 @@
+--- style/skins/metacatui/eml-2/eml-dataset.xsl	2021-09-17 09:39:58.000000000 -0700
++++ metacat/skins/metacatui/eml-2/eml-dataset.xsl	2021-10-11 13:14:14.000000000 -0700
+@@ -60,22 +60,74 @@
  		<xsl:call-template name="datasetcitation" />
      </xsl:for-each>
  
-+    <xsl:if test="annotation[propertyURI[contains(text(),'relationtype')]]">
++    <xsl:if test="annotation[propertyURI[contains(text(),'schema.org')]]">
 +        <h4>External Links to Data or Metadata</h4>
 +        <div class="control-group">
 +            <div class="controls-well">
@@ -14,36 +14,39 @@
 +                        <th colspan="3" class="table-header">External links for this dataset</th>
 +                        </tr>
 +                        <tr>
-+                            <th>Label</th>
-+                            <th>URL</th>
++                            <th>Description</th>
 +                            <th>Relationship</th>
++                            <th>URL</th>
 +                        </tr>
 +                    </thead>
 +                    <tbody>
-+                    <xsl:for-each select="annotation[propertyURI[contains(text(),'relationtype')]]">
++                    <xsl:for-each select="annotation[propertyURI[contains(text(),'schema.org')]]">
 +                        <tr>
 +                            <td><xsl:value-of select="valueURI/@label"/></td>
 +                            <td><xsl:element name="a">
-+                                <xsl:attribute name="href"><xsl:value-of select="normalize-space(valueURI)"/></xsl:attribute>
-+                                <xsl:attribute name="target">_blank</xsl:attribute>
-+                                <xsl:value-of select="valueURI"/>
-+                            </xsl:element></td>
-+                            <td>
++                                <xsl:attribute name="href"><xsl:value-of select="normalize-space(propertyURI)"/></xsl:attribute>
++                                <xsl:attribute name="target">_blank</xsl:attribute>[<xsl:value-of select="propertyURI/@label"/>]
++                            </xsl:element>
 +                            <xsl:choose>
 +                                <xsl:when test="propertyURI[@label='has part']">
-+                                     Distributed as part of this data package.
++                                     Data that is part of this dataset.
 +                                </xsl:when>
-+                                <xsl:when test="propertyURI[@label='is identical to']">
-+                                     Same as this data package where the original data can be found.
++                                <xsl:when test="propertyURI[@label='same as']">
++                                     Original publication of this dataset (where the data+metadata can be found)
 +                                </xsl:when>
-+                                <xsl:when test="propertyURI[@label='is original form of']">
-+                                     Copy of the data in this data package.
++                                <xsl:when test="propertyURI[@label='archived at']">
++                                     Complete copy of the data in this dataset
 +                                </xsl:when>
 +                                <xsl:otherwise>
 +                                    Data package <xsl:value-of select="propertyURI/@label"/> this data.
 +                                </xsl:otherwise>
 +                            </xsl:choose>
 +                            </td>
++                            <td><xsl:element name="a">
++                                <xsl:attribute name="href"><xsl:value-of select="normalize-space(valueURI)"/></xsl:attribute>
++                                <xsl:attribute name="target">_blank</xsl:attribute>
++                                <xsl:value-of select="valueURI"/>
++                            </xsl:element></td>
 +                        </tr>
 +                    </xsl:for-each>
 +                    </tbody>
@@ -52,7 +55,7 @@
 +        </div>
 +    </xsl:if>
 +
-+    <xsl:if test="annotations/propertyURI[not(contains(text(),'relationtype'))]]">
++    <xsl:if test="annotation/propertyURI[not(contains(text(),'schema.org'))]]">
 +    <div class="control-group">
 +    <label class="control-label">
 +        Annotations
