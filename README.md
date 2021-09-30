@@ -164,6 +164,16 @@ The metacat REST API should be able to be accessed at `http://localhost:8080/met
     git diff server.xml.patch
     
 
+## Patch eml-dataset.xsl
+
+* Get the eml-dataset.xsl from the latest metacat tar ball
+
+diff -u style/skins/metacatui/eml-2/eml-dataset.xsl \
+      metacat/skins/metacatui/eml-2/eml-dataset.xsl > metacat/eml-dataset.xsl.patch
+    
+    
+
+
 # License
 
 TBD
