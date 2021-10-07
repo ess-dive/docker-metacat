@@ -198,7 +198,7 @@ if [ "$1" = 'bin/catalina.sh' ]; then
             ## Note: the Java bcrypt library only supports '2a' format hashes, so override the default python behavior
             ## so that the hases created start with '2a' rather than '2b'
             bash ./authFileManager.sh useradd \
-                -h "`python -c "import bcrypt; print(str(bcrypt.hashpw(b'$ADMINPASS', bcrypt.gensalt(10,prefix=b'\$2a\$')).decode()))"`" \
+                -h "`python -c "import bcrypt; print(str(bcrypt.hashpw(b'$ADMINPASS', bcrypt.gensalt(10,prefix=b'2a')).decode()))"`" \
                 -dn "$ADMIN"
             cd /usr/local/tomcat
 
