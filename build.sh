@@ -9,7 +9,6 @@ fi
 SOLR_VERSION=8.9
 BUILD_ARGS="${BUILD_ARGS} --build-arg SOLR_VERSION=$SOLR_VERSION"
 
-BUILD_ARGS=""
 if [ ! -z $2 ] ;
 then
     ESSIDIVE_UID=$2
