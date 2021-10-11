@@ -85,10 +85,6 @@ then
     IMAGE_NAME="${REGISTRY_SPIN}/${IMAGE_NAME}"
   fi
 
-  echo "docker build ${DOCKER_BUILD_OPTIONS} -f $DIR/metacat/Dockerfile -t ${IMAGE_NAME} $BUILD_ARGS $DIR/"
-  docker build ${DOCKER_BUILD_OPTIONS} -f $DIR/metacat/Dockerfile -t ${IMAGE_NAME} $BUILD_ARGS $DIR/
-
-
   rm -rf $DIR/metacat-index.war $DIR/metacat.war $DIR/solr/WEB-INF "$DIR/style/skins/metacatui/eml-2/eml-dataset.xsl"
 
   # Get the solr config from the index war file for solr image
@@ -100,6 +96,9 @@ then
   unzip "$DIR/metacat.war" "style/skins/metacatui/eml-2/eml-dataset.xsl"   -d "$DIR"
   [ ! -f "$DIR/metacat/skins/metacatui/eml-2/" ] && mkdir -pv "$DIR/metacat/skins/metacatui/eml-2/"
   patch -N $DIR/style/skins/metacatui/eml-2/eml-dataset.xsl  $DIR/metacat/eml-dataset.xsl.patch -o $DIR/metacat/skins/metacatui/eml-2/eml-dataset.xsl
+
+  echo "docker build ${DOCKER_BUILD_OPTIONS} -f $DIR/metacat/Dockerfile -t ${IMAGE_NAME} $BUILD_ARGS $DIR/"
+  docker build ${DOCKER_BUILD_OPTIONS} -f $DIR/metacat/Dockerfile -t ${IMAGE_NAME} $BUILD_ARGS $DIR/
 
   # create the docker tag
   DOCKER_TAG="${VERSION}-${SOLR_VERSION}-p$(cd $DIR; git rev-list HEAD --count)"
