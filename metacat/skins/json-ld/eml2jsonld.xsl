@@ -28,39 +28,31 @@
         "url": "<xsl:value-of select="$url"/>",
         "@type": "Dataset",
         "@id": "<xsl:value-of select="$url"/>",
-                <xsl:if test="dataset/annotation[propertyURI/@label='is identical to']">
-        "identifier": [<xsl:for-each select="dataset/annotation[propertyURI/@label='is identical to']">
+                <xsl:if test="dataset/annotation[propertyURI/@label='same as']">
+        "identifier": [<xsl:for-each select="dataset/annotation[propertyURI/@label='same as']">
             {
                 "@type": "PropertyValue",
                 "propertyID": "DOI",
-                "value": "<xsl:call-template name="transform-string"><xsl:with-param name="content" select="valueURI/@label"/></xsl:call-template>"
+                "value": "<xsl:call-template name="replace-all">
+                 <xsl:with-param name="text" select="valueURI/@label"/>
+                 <xsl:with-param name="replace">doi:</xsl:with-param>
+                </xsl:call-template>"
             }<xsl:if test="position() != last()">
                 <xsl:text>,</xsl:text>
             </xsl:if>
             </xsl:for-each>
             ],
-        "sameAs": [<xsl:for-each select="dataset/annotation[propertyURI/@label='is identical to']">
+        "sameAs": [<xsl:for-each select="dataset/annotation[propertyURI/@label='same as']">
             "<xsl:call-template name="transform-string"><xsl:with-param name="content" select="valueURI"/></xsl:call-template>"<xsl:if test="position() != last()">
                 <xsl:text>,</xsl:text>
             </xsl:if>
             </xsl:for-each>
             ],</xsl:if>
-        <xsl:if test="dataset/annotation[propertyURI/@label='is original form of']">
-        "archivedAt": [<xsl:for-each select="dataset/annotation[propertyURI/@label='is original form of']">
+        <xsl:if test="dataset/annotation[propertyURI/@label='archived at']">
+        "archivedAt": [<xsl:for-each select="dataset/annotation[propertyURI/@label='archived at']">
             {
                 "@type": "WebPage",
                 "name": "<xsl:value-of select="valueURI/@label"/>",
-                "url": "<xsl:call-template name="transform-string"><xsl:with-param name="content" select="valueURI"/></xsl:call-template>"
-            }<xsl:if test="position() != last()">
-                <xsl:text>,</xsl:text>
-            </xsl:if>
-            </xsl:for-each>
-        ],</xsl:if>
-        <xsl:if test="dataset/annotation[propertyURI/@label='is derived from']">
-        "isBasedOn": [<xsl:for-each select="dataset/annotation[propertyURI/@label='is derived from']">
-            {
-                "@type": "Dataset",
-                "@id": "<xsl:value-of select="valueURI/@label"/>",
                 "url": "<xsl:call-template name="transform-string"><xsl:with-param name="content" select="valueURI"/></xsl:call-template>"
             }<xsl:if test="position() != last()">
                 <xsl:text>,</xsl:text>
@@ -341,8 +333,46 @@
         }
     </xsl:template>
 
+    <!-- transform-string
+    Transforms the string for valid JSON
+
+    This template does the following
+    + normalizes spaces with normalize-space
+    + translates the invalid characters to spaces
+    + translates $quot; to $APOS
+
+    content - the string to transform
+    -->
     <xsl:template name="transform-string">
         <xsl:param name="content"/><xsl:value-of select="translate(translate(normalize-space($content),' &#x9;&#xa;&#xd;', ' '), '&quot;', $APOS)"/>
+    </xsl:template>
+
+    <!--  replace-all string maniuplation template
+    Parameters:
+    + text    - the string to modify
+    + replace - the string to replace
+    + with    - the string to replace with
+    -->
+    <xsl:template name="replace-all">
+        <xsl:param name="text"/>
+        <xsl:param name="replace"/>
+        <xsl:param name="with"/>
+        <xsl:variable name="textTransformed"><xsl:call-template name="transform-string"><xsl:with-param name="content" select="$text"/></xsl:call-template></xsl:variable>
+        <xsl:choose>
+            <xsl:when test="contains($textTransformed,$replace)">
+                <xsl:value-of select="substring-before($textTransformed,$replace)"/>
+                <xsl:value-of select="$with"/>
+                <xsl:call-template name="replace-all">
+                    <xsl:with-param name="text"
+                                    select="substring-after($textTransformed,$replace)"/>
+                    <xsl:with-param name="replace" select="$replace"/>
+                    <xsl:with-param name="with" select="$with"/>
+                </xsl:call-template>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:value-of select="$textTransformed"/>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
 
 </xsl:stylesheet>
