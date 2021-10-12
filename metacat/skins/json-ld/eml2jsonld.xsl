@@ -240,22 +240,9 @@
             ]
         </xsl:if>
         <xsl:if test="dataset/coverage/temporalCoverage/rangeOfDates">
-            ,"temporalCoverage":<xsl:choose>
-            <xsl:when test="count(dataset/coverage/temporalCoverage/rangeOfDates) &gt; 1">[
-            <xsl:for-each select="dataset/coverage/temporalCoverage/rangeOfDates">
-                "<xsl:value-of select="beginDate/calendarDate"/><xsl:choose><xsl:when test="endDate/calendarDate and beginDate/calendarDate">/<xsl:value-of select="endDate/calendarDate"/></xsl:when></xsl:choose><xsl:choose><xsl:when test="not(endDate/calendarDate) and beginDate/calendarDate">..</xsl:when></xsl:choose>"
-                <xsl:if test="position() != last()">
-                    <xsl:text>,</xsl:text>
-                </xsl:if>
-            </xsl:for-each>
-            ]
-            </xsl:when>
-            <xsl:otherwise>
-               "<xsl:value-of select="beginDate/calendarDate"/><xsl:choose><xsl:when test="endDate/calendarDate and beginDate/calendarDate">/<xsl:value-of select="endDate/calendarDate"/></xsl:when></xsl:choose><xsl:choose><xsl:when test="not(endDate/calendarDate) and beginDate/calendarDate">..</xsl:when></xsl:choose>"
-            </xsl:otherwise>
-            </xsl:choose>
-        </xsl:if>
-        <xsl:if test="dataset/contact[position() = 1]">
+            ,"temporalCoverage":"<xsl:value-of select="dataset/coverage/temporalCoverage/rangeOfDates[1]/beginDate/calendarDate"/><xsl:choose>
+                <xsl:when test="dataset/coverage/temporalCoverage/rangeOfDates[1]/endDate/calendarDate and dataset/coverage/temporalCoverage/rangeOfDates[1]/beginDate/calendarDate">/<xsl:value-of select="dataset/coverage/temporalCoverage/rangeOfDates[1]/endDate/calendarDate"/></xsl:when>
+                <xsl:otherwise>..</xsl:otherwise></xsl:choose>"</xsl:if><xsl:if test="dataset/contact[position() = 1]">
             ,"editor": {
             "@type": "Person",
             <xsl:if test="dataset/contact[position() = 1]/userId">"@id": "<xsl:call-template name="transform-string"><xsl:with-param name="content" select="dataset/contact[position() = 1]/userId"/></xsl:call-template>",
