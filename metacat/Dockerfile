@@ -29,7 +29,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         telnetd \
         procps \
         logrotate \
-        zip \
     && rm -rf /var/lib/apt/lists/* \
     && cp /tmp/metacat.war /tmp/metacat-index.war /usr/local/tomcat/webapps \
     && cat /tmp/catalina.properties >> /usr/local/tomcat/conf/catalina.properties
