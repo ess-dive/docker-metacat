@@ -43,7 +43,8 @@ RUN ln -s usr/local/bin/apply_context.py / # backwards compat
 
 COPY metacat/docker-entrypoint.sh /usr/local/bin/
 RUN ln -s usr/local/bin/docker-entrypoint.sh / # backwards compat
-RUN ln -s /usr/bin/python3 /usr/bin/python  # symbolic link to python
+RUN [ -L /usr/bin/python ] && unlink /usr/bin/python; \
+    ln -s /usr/bin/python3 /usr/bin/python  # symbolic link to python
 ENTRYPOINT ["docker-entrypoint.sh"]
 
 # merge recommended settings for metacat into default configuration
