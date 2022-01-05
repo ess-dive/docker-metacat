@@ -3,4 +3,6 @@
 .DS_Store
 image_version.yml
 metacat/skins/metacatui
+solr
 style
+WEB-INF

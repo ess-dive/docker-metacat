@@ -85,16 +85,20 @@ then
     IMAGE_NAME="${REGISTRY_SPIN}/${IMAGE_NAME}"
   fi
 
-  rm -rf $DIR/metacat-index.war $DIR/metacat.war $DIR/solr/WEB-INF "$DIR/style/skins/metacatui/eml-2/eml-dataset.xsl"
+  rm -rf $DIR/metacat-index.war $DIR/metacat.war $DIR/solr/WEB-INF "$DIR/style/skins/metacatui/eml-2/eml-dataset.xsl" "$DIR/WEB-INF/classes/solr-home/conf/schema.xml"
 
   # Get the solr config from the index war file for solr image
   tar -xvf  $DIR/${ARCHIVE} --directory $DIR metacat-index.war
   tar -xvf  $DIR/${ARCHIVE} --directory $DIR metacat.war
   unzip "$DIR/metacat-index.war" "WEB-INF/classes/solr-home/conf/*" -d "$DIR/solr"
+  unzip "$DIR/metacat-index.war" "WEB-INF/classes/solr-home/conf/schema.xml" -d "$DIR"
+  # Customize the Metacat Solr Schema
+  patch -N $DIR/WEB-INF/classes/solr-home/conf/schema.xml  $DIR/solr/schema.xml.patch -o $DIR/solr/WEB-INF/classes/solr-home/conf/schema.xml
 
   # Patch eml-dataset.xsl with eml-dataset.xsl.patch for the current release
   unzip "$DIR/metacat.war" "style/skins/metacatui/eml-2/eml-dataset.xsl"   -d "$DIR"
   [ ! -f "$DIR/metacat/skins/metacatui/eml-2/" ] && mkdir -pv "$DIR/metacat/skins/metacatui/eml-2/"
+  # Customize the EML XSL Template
   patch -N $DIR/style/skins/metacatui/eml-2/eml-dataset.xsl  $DIR/metacat/eml-dataset.xsl.patch -o $DIR/metacat/skins/metacatui/eml-2/eml-dataset.xsl
 
   echo "docker build ${DOCKER_BUILD_OPTIONS} -f $DIR/metacat/Dockerfile -t ${IMAGE_NAME} $BUILD_ARGS $DIR/"
