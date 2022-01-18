@@ -31,7 +31,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         logrotate \
     && rm -rf /var/lib/apt/lists/* \
     && cp /tmp/metacat.war /tmp/metacat-index.war /usr/local/tomcat/webapps \
-    && cat /tmp/catalina.properties >> /usr/local/tomcat/conf/catalina.properties
+    && cat /tmp/catalina.properties >> /usr/local/tomcat/conf/catalina.properties \
+    && rm -rf /tmp/*.war
 
 ADD metacat/metacat.conf /etc/logrotate.d/
 
