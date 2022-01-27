@@ -30,7 +30,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         procps \
         logrotate \
     && rm -rf /var/lib/apt/lists/* \
-    && cp /tmp/metacat.war /tmp/metacat-index.war /usr/local/tomcat/webapps \
+    && unzip /tmp/metacat-index.war -d /usr/local/tomcat/webapps/metacat-index \
+    && unzip /tmp/metacat.war -d /usr/local/tomcat/webapps/metacat \
     && cat /tmp/catalina.properties >> /usr/local/tomcat/conf/catalina.properties \
     && rm -rf /tmp/*.war
 
@@ -58,9 +59,10 @@ RUN groupadd -g ${METACAT_GID} metacat && \
     chown -R metacat:metacat /tmp/skins && \
     chown -R metacat:metacat /var/metacat logs temp work && \
     chown -R metacat:metacat /usr/local/tomcat/conf && \
-    chown metacat:metacat /usr/local/tomcat/webapps  && \
+    chown -R metacat:metacat /usr/local/tomcat/webapps  && \
     chmod g+s  /usr/local/tomcat/webapps   && \
-    chmod +r+g conf/*
+    chmod +r+g conf/* && \
+    find . -name oa4mp-client-oauth1-3.3.war -delete
 
 EXPOSE 8080
 EXPOSE 8009

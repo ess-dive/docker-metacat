@@ -34,35 +34,21 @@ if [ "$1" = 'bin/catalina.sh' ]; then
     echo
     /usr/sbin/logrotate -s /usr/local/tomcat/logs/logrotate-status.log /etc/logrotate.d/metacat.conf &
 
-    METACAT_DEFAULT_WAR=/usr/local/tomcat/webapps/metacat.war
-    METACAT_DIR=/usr/local/tomcat/webapps/${METACAT_APP_CONTEXT}
-    METACAT_WAR=${METACAT_DIR}.war
-    METACATUI_BASE_SKIN_PATH=/usr/local/tomcat/webapps/catalog/style/skins/metacatui
+    METACAT_DEFAULT_DIR="/usr/local/tomcat/webapps/metacat"
+    METACAT_DIR="/usr/local/tomcat/webapps/${METACAT_APP_CONTEXT}"
+    METACATUI_BASE_SKIN_PATH="/usr/local/tomcat/webapps/catalog/style/skins/metacatui"
 
     # The following constant defines the last version before the metacat version that supports the upgrade status
     # ability in metacat node capabilities. This is used to enable the script to learn when to use the node capability
     UPGRADE_STATUS_ABILITY_PRE_VERSION=2.12.2
 
-    # Expand the metacat-index.war
-    if [ ! -d webapps/metacat-index ];
-    then
-      unzip webapps/metacat-index.war -d webapps/metacat-index
-    fi
-
     # Check the context
-    if [ "${METACAT_WAR}" != "${METACAT_DEFAULT_WAR}" ] &&
-       [ -f $METACAT_DEFAULT_WAR ];
+    if [ "${METACAT_DIR}" != "${METACAT_DEFAULT_DIR}" ] ;
     then
         # Move the application to match the context
         echo "Changing context to ${METACAT_APP_CONTEXT}"
-        mv $METACAT_DEFAULT_WAR $METACAT_WAR
+        mv $METACAT_DEFAULT_DIR $METACAT_DIR
 
-    fi
-
-    # Expand the WAR file
-    if [ ! -d $METACAT_DIR ];
-    then
-        unzip  $METACAT_WAR -d $METACAT_DIR
     fi
 
     # change the context in the web.xml file
@@ -398,6 +384,7 @@ if [ "$1" = 'bin/catalina.sh' ]; then
     echo
     echo '**************************************'
     echo "END"
+    echo '**************************************'
     echo '**************************************'
     echo
 
