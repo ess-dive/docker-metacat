@@ -166,17 +166,19 @@ The metacat REST API should be able to be accessed at `http://localhost:8080/met
 
 ## Patch Metacat eml-dataset.xsl
 
-* Get the eml-dataset.xsl from the latest metacat tar ball
+* Get the eml-dataset.xsl from the latest metacat tar ball 
 
 diff -u style/skins/metacatui/eml-2/eml-dataset.xsl \
       metacat/skins/metacatui/eml-2/eml-dataset.xsl > metacat/eml-dataset.xsl.patch
     
     
-## Patch Metacat Solr schema.xsl
-* Get the schema.xno from the latest metacat tar ball
+## Patch Metacat Solr schema.xsl and solrconfig.xml
+* Edit the schema.xml and solrconfig.xml from the latest metacat tar ball
 
 diff -u WEB-INF/classes/solr-home/conf/schema.xml \
       solr/WEB-INF/classes/solr-home/conf/schema.xml > solr/schema.xml.patch
+diff -u WEB-INF/classes/solr-home/conf/solrconfig.xml \
+      solr/WEB-INF/classes/solr-home/conf/solrconfig.xml > solr/schema.xml.patch
 
 # License
 

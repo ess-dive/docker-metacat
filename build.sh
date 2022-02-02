@@ -85,15 +85,20 @@ then
     IMAGE_NAME="${REGISTRY_SPIN}/${IMAGE_NAME}"
   fi
 
-  rm -rf $DIR/metacat-index.war $DIR/metacat.war $DIR/solr/WEB-INF "$DIR/style/skins/metacatui/eml-2/eml-dataset.xsl" "$DIR/WEB-INF/classes/solr-home/conf/schema.xml"
+  rm -rf $DIR/metacat-index.war $DIR/metacat.war $DIR/solr/WEB-INF "$DIR/style/skins/metacatui/eml-2/eml-dataset.xsl" \
+    "$DIR/WEB-INF/classes/solr-home/conf/schema.xml" \
+    "$DIR/WEB-INF/classes/solr-home/conf/solrconfig.xml"
 
   # Get the solr config from the index war file for solr image
   tar -xvf  $DIR/${ARCHIVE} --directory $DIR metacat-index.war
   tar -xvf  $DIR/${ARCHIVE} --directory $DIR metacat.war
   unzip "$DIR/metacat-index.war" "WEB-INF/classes/solr-home/conf/*" -d "$DIR/solr"
   unzip "$DIR/metacat-index.war" "WEB-INF/classes/solr-home/conf/schema.xml" -d "$DIR"
-  # Customize the Metacat Solr Schema
+  unzip "$DIR/metacat-index.war" "WEB-INF/classes/solr-home/conf/solrconfig.xml" -d "$DIR"
+
+  # Customize the Metacat Solr Schema and config
   patch -N $DIR/WEB-INF/classes/solr-home/conf/schema.xml  $DIR/solr/schema.xml.patch -o $DIR/solr/WEB-INF/classes/solr-home/conf/schema.xml
+  patch -N $DIR/WEB-INF/classes/solr-home/conf/solrconfig.xml  $DIR/solr/solrconfig.xml.patch -o $DIR/solr/WEB-INF/classes/solr-home/conf/solrconfig.xml
 
   # Patch eml-dataset.xsl with eml-dataset.xsl.patch for the current release
   unzip "$DIR/metacat.war" "style/skins/metacatui/eml-2/eml-dataset.xsl"   -d "$DIR"
