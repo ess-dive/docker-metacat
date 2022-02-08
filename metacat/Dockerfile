@@ -29,6 +29,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         telnetd \
         procps \
         logrotate \
+        rsync \
     && rm -rf /var/lib/apt/lists/* \
     && unzip /tmp/metacat-index.war -d /usr/local/tomcat/webapps/metacat-index \
     && unzip /tmp/metacat.war -d /usr/local/tomcat/webapps/metacat \
