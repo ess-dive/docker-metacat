@@ -6,7 +6,7 @@ if [ -z $1 ] ;
     echo "Usage: $0 <version> (<uid> <gid>)"
     exit
 fi
-SOLR_VERSION=8.11.1
+SOLR_VERSION=8.11
 BUILD_ARGS="${BUILD_ARGS} --build-arg SOLR_VERSION=$SOLR_VERSION"
 
 if [ ! -z $2 ] ;
