@@ -2,6 +2,9 @@
 
 set -e
 DEBUG=${DEBUG:0}
+
+sed -i.bak "s/^rootLogger.level=.*/rootLogger.level=INFO/" /usr/local/tomcat/webapps/metacat-index/WEB-INF/classes/log4j2.properties
+
 if [ $DEBUG -eq 1 ];
 then
     set -x
