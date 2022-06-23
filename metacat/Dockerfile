@@ -22,6 +22,7 @@ ADD image_version.yml image_version.yml
 RUN apt-get update && apt-get install -y --no-install-recommends \
         patch \
         python3-bcrypt \
+        unzip \
         vim \
         netcat \
         libxml2-utils \
@@ -39,13 +40,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 ADD metacat/metacat.conf /etc/logrotate.d/
 
 COPY metacat/apply_config.py /usr/local/bin/
-RUN ln -s usr/local/bin/apply_config.py / # backwards compat
+RUN chmod 775 /usr/local/bin/apply_config.py && ln -s usr/local/bin/apply_config.py / # backwards compat
 
 COPY metacat/apply_context.py /usr/local/bin/
-RUN ln -s usr/local/bin/apply_context.py / # backwards compat
+RUN chmod 775 /usr/local/bin/apply_context.py && ln -s usr/local/bin/apply_context.py / # backwards compat
 
 COPY metacat/docker-entrypoint.sh /usr/local/bin/
-RUN ln -s usr/local/bin/docker-entrypoint.sh / # backwards compat
+RUN chmod 775 /usr/local/bin/docker-entrypoint.sh && ln -s usr/local/bin/docker-entrypoint.sh / # backwards compat
 RUN [ -L /usr/bin/python ] && unlink /usr/bin/python; \
     ln -s /usr/bin/python3 /usr/bin/python  # symbolic link to python
 ENTRYPOINT ["docker-entrypoint.sh"]
@@ -57,6 +58,7 @@ RUN patch conf/server.xml /tmp/server.xml.patch
 RUN groupadd -g ${METACAT_GID} metacat && \
     useradd -u ${METACAT_UID} -g ${METACAT_GID} -c 'Metacat User'  --no-create-home metacat && \
     mkdir -p /var/metacat && \
+    chmod 775 /etc/logrotate.d/metacat.conf && \
     chown -R metacat:metacat /tmp/skins && \
     chown -R metacat:metacat /var/metacat logs temp work && \
     chown -R metacat:metacat /usr/local/tomcat/conf && \
