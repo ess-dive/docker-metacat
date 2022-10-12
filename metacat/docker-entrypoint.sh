@@ -120,6 +120,16 @@ if [ "$1" = 'bin/catalina.sh' ]; then
         ADMINPASS=`cat $ADMINPASS_FILE`
     fi
 
+    # Look for the osti elink username file
+    if [  ! -z "$OSTI_ELINK_USERNAME_FILE"  ] && [ -s $OSTI_ELINK_USERNAME_FILE ];then
+        export OSTI_ELINK_USERNAME=`cat $OSTI_ELINK_USERNAME_FILE`
+    fi
+
+    # Look for the osti elink password file
+    if [  ! -z "$OSTI_ELINK_PASSWORD_FILE"  ] && [ -s $OSTI_ELINK_PASSWORD_FILE ];then
+        export OSTI_ELINK_PASSWORD=`cat $OSTI_ELINK_PASSWORD_FILE`
+    fi
+
     # Look for the properties file
     if [ -s $APP_PROPERTIES_FILE ];
     then
