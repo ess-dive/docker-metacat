@@ -98,7 +98,9 @@ then
 
   # Customize the Metacat Solr Schema and config
   patch -N $DIR/WEB-INF/classes/solr-home/conf/schema.xml  $DIR/solr/schema.xml.patch -o $DIR/solr/WEB-INF/classes/solr-home/conf/schema.xml
-  patch -N $DIR/WEB-INF/classes/solr-home/conf/solrconfig.xml  $DIR/solr/solrconfig.xml.patch -o $DIR/solr/WEB-INF/classes/solr-home/conf/solrconfig.xml
+  patch -N $DIR/WEB-INF/classes/solr-home/conf/solrconfig.xml  $DIR/solr/solrconfig.xml.patch -o $DIR/solr/WEB-INF/classes/solr-home/conf/solrconfig.xml \
+    && echo "Patched solrconfig.xml" || \
+    cp $DIR/WEB-INF/classes/solr-home/conf/solrconfig.xml $DIR/solr/WEB-INF/classes/solr-home/conf/solrconfig.xml && echo "Copied solrconfig.xml"
 
   # Patch eml-dataset.xsl with eml-dataset.xsl.patch for the current release
   unzip "$DIR/metacat.war" "style/skins/metacatui/eml-2/eml-dataset.xsl"   -d "$DIR"
