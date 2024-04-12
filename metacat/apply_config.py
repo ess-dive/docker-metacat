@@ -86,16 +86,15 @@ if __name__ == "__main__":
     # Check to see if the application properties exist in the metacat properties
     difference = set(app_properties.keys()).difference(set(metacat_properties.keys()))
     if len(difference) > 0:
-        print("The following properties do not exist in '{}':".format(metacat_properties_file), file=sys.stderr)
+        print("The following new properties are being added '{}':".format(metacat_properties_file), file=sys.stderr)
         for p in difference:
-            print("\t{}".format(p), file=sys.stderr)
-        sys.exit(-4)
+            print("\t{}".format(p))
+
+    metacat_properties.update(app_properties)
 
     # Merge the application and metacat properties
     with open(metacat_properties_file,'w') as f:
         for key, value in metacat_properties.items():
-            if key in app_properties.keys():
-                value=app_properties[key]
 
             if key.startswith("#"):
                 f.write("{}\n".format(value))
