@@ -24,7 +24,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         python3-bcrypt \
         unzip \
         vim \
-        netcat \
+        netcat-traditional \
         libxml2-utils \
         net-tools \
         telnetd \
