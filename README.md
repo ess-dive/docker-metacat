@@ -147,11 +147,11 @@ The metacat REST API should be able to be accessed at `http://localhost:8080/met
 
 *Get the conf files from the latest image*
 
-    docker pull tomcat:7.0-jre8
+    docker pull tomcat:9.0-jdk8
     
 *If the image updated, then determine if the conf files changed*
     
-    docker run --entrypoint "/bin/cat" tomcat:7.0-jre8  conf/server.xml > image-server.xml
+    docker run --entrypoint "/bin/cat" tomcat:9.0-jdk8  conf/server.xml > image-server.xml
     git diff image-server.xml
     
     
