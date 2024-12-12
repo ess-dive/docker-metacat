@@ -79,10 +79,10 @@ then
 
   # Determine if there is an image registry
   IMAGE_NAME="metacat:${DOCKER_TAG}"
-  if [ "${REGISTRY_SPIN}" != "" ];
+  if [ "${REGISTRY}" != "" ];
   then
     # There is a spin registry
-    IMAGE_NAME="${REGISTRY_SPIN}/${IMAGE_NAME}"
+    IMAGE_NAME="${REGISTRY}/${IMAGE_NAME}"
   fi
 
   rm -rf $DIR/metacat-index.war $DIR/metacat.war $DIR/solr/WEB-INF "$DIR/style/skins/metacatui/eml-2/eml-dataset.xsl" \
@@ -116,10 +116,10 @@ then
 
   # Determine if there is an image registry
   IMAGE_NAME="metacat-solr:${DOCKER_TAG}"
-  if [ "${REGISTRY_SPIN}" != "" ];
+  if [ "${REGISTRY}" != "" ];
   then
     # There is a spin registry
-    IMAGE_NAME="${REGISTRY_SPIN}/${IMAGE_NAME}"
+    IMAGE_NAME="${REGISTRY}/${IMAGE_NAME}"
   fi
 
   echo "docker build ${DOCKER_BUILD_OPTIONS} -f $DIR/solr/Dockerfile -t ${IMAGE_NAME} $BUILD_ARGS $DIR/"
