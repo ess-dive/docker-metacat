@@ -16,6 +16,7 @@ ADD metacat-bin-${METACAT_VERSION}.tar.gz /tmp/
 ADD metacat/catalina.properties /tmp/
 ADD metacat/server.xml.patch /tmp/
 ADD metacat/skins /tmp/skins
+ADD metacat/files /tmp/files
 ADD image_version.yml image_version.yml
 
 
@@ -31,11 +32,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         procps \
         logrotate \
         rsync \
-    && rm -rf /var/lib/apt/lists/* \
+    && rm -rfv /var/lib/apt/lists/* \
     && unzip /tmp/metacat-index.war -d /usr/local/tomcat/webapps/metacat-index \
     && unzip /tmp/metacat.war -d /usr/local/tomcat/webapps/metacat \
+    && rm -rfv /usr/local/tomcat/webapps/metacat/WEB-INF/lib/osti-elink-*.jar  \
+    && rsync -auv /tmp/files/ /usr/local/tomcat/webapps/metacat/ \
     && cat /tmp/catalina.properties >> /usr/local/tomcat/conf/catalina.properties \
-    && rm -rf /tmp/*.war
+    && rm -rvf /tmp/*.war /tmp/files /tmp/catalina.properties
 
 ADD metacat/metacat.conf /etc/logrotate.d/
 
