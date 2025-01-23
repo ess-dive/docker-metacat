@@ -53,7 +53,6 @@ if [ "$1" = 'bin/catalina.sh' ]; then
         mv $METACAT_DEFAULT_DIR $METACAT_DIR
 
     fi
-
     # change the context in the web.xml file
     apply_context.py metacat ${METACAT_APP_CONTEXT}
 
@@ -197,7 +196,6 @@ if [ "$1" = 'bin/catalina.sh' ]; then
 
             echo "cd ${METACAT_DIR}/WEB-INF/scripts/bash"
             cd ${METACAT_DIR}/WEB-INF/scripts/bash
-
             ## Note: the Java bcrypt library only supports '2a' format hashes, so override the default python behavior
             ## so that the hases created start with '2a' rather than '2b'
             bash ./authFileManager.sh useradd \
@@ -254,13 +252,17 @@ if [ "$1" = 'bin/catalina.sh' ]; then
     echo
 
     # Login to Metacat Admin and start a session (cookie.txt)
-    curl -v -X POST \
-        --data "loginAction=Login&configureType=login&processForm=true&password=${ADMINPASS}&username=${ADMIN}" \
+    curl -v --data "loginAction=Login&configureType=login&processForm=true&password=${ADMINPASS}&username=${ADMIN}" \
         --cookie-jar /tmp/cookie.txt http://localhost:8080/${METACAT_APP_CONTEXT}/admin > /tmp/login_result.txt 2>&1
 
-
     # Test the the admin logged in successfully
-	    [ -f /tmp/login_result.txt ] && [ $(grep "User logged in as:" /tmp/login_result.txt| wc -l) -eq 1 ] || (echo "Administrator not logged in!!" &&  grep "<message>" /tmp/login_result.txt && exit -4)
+	  if [ -f /tmp/login_result.txt ] && [ $(grep "User logged in as:" /tmp/login_result.txt| wc -l) -eq 1 ]; then
+	            echo "Administrator logged in successfully"
+    else
+        echo "ERROR: Administrator not logged in!!"
+        grep "<message>" /tmp/login_result.txt || cat /tmp/login_result.txt
+        exit 4
+    fi
 
     echo
     echo '**************************************'
