@@ -1,4 +1,4 @@
-ARG SOLR_VERSION=8.4.1
+ARG SOLR_VERSION=9.5
 FROM solr:${SOLR_VERSION}
 
 ADD image_version.yml image_version.yml
