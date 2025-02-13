@@ -1,4 +1,4 @@
-FROM tomcat:9.0-jdk8
+FROM tomcat:9.0-jre17
 
 # Debian Tomcat UID
 ARG METACAT_UID=108
@@ -22,6 +22,7 @@ ADD image_version.yml image_version.yml
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
         patch \
+        gettext \
         python3-bcrypt \
         unzip \
         vim \
@@ -41,9 +42,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rvf /tmp/*.war /tmp/files /tmp/catalina.properties
 
 ADD metacat/metacat.conf /etc/logrotate.d/
-
-COPY metacat/apply_config.py /usr/local/bin/
-RUN chmod 775 /usr/local/bin/apply_config.py && ln -s usr/local/bin/apply_config.py / # backwards compat
 
 COPY metacat/apply_context.py /usr/local/bin/
 RUN chmod 775 /usr/local/bin/apply_context.py && ln -s usr/local/bin/apply_context.py / # backwards compat

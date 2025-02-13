@@ -92,15 +92,15 @@ then
   # Get the solr config from the index war file for solr image
   tar -xvf  $DIR/${ARCHIVE} --directory $DIR metacat-index.war
   tar -xvf  $DIR/${ARCHIVE} --directory $DIR metacat.war
-  unzip "$DIR/metacat-index.war" "WEB-INF/classes/solr-home/conf/*" -d "$DIR/solr"
-  unzip "$DIR/metacat-index.war" "WEB-INF/classes/solr-home/conf/schema.xml" -d "$DIR"
-  unzip "$DIR/metacat-index.war" "WEB-INF/classes/solr-home/conf/solrconfig.xml" -d "$DIR"
-
-  # Customize the Metacat Solr Schema and config
-  patch -N $DIR/WEB-INF/classes/solr-home/conf/schema.xml  $DIR/solr/schema.xml.patch -o $DIR/solr/WEB-INF/classes/solr-home/conf/schema.xml
-  patch -N $DIR/WEB-INF/classes/solr-home/conf/solrconfig.xml  $DIR/solr/solrconfig.xml.patch -o $DIR/solr/WEB-INF/classes/solr-home/conf/solrconfig.xml \
-    && echo "Patched solrconfig.xml" || \
-    cp $DIR/WEB-INF/classes/solr-home/conf/solrconfig.xml $DIR/solr/WEB-INF/classes/solr-home/conf/solrconfig.xml && echo "Copied solrconfig.xml"
+#  unzip "$DIR/metacat-index.war" "WEB-INF/classes/solr-home/conf/*" -d "$DIR/solr"
+#  unzip "$DIR/metacat-index.war" "WEB-INF/classes/solr-home/conf/schema.xml" -d "$DIR"
+#  unzip "$DIR/metacat-index.war" "WEB-INF/classes/solr-home/conf/solrconfig.xml" -d "$DIR"
+#
+#  # Customize the Metacat Solr Schema and config
+#  patch -N $DIR/WEB-INF/classes/solr-home/conf/schema.xml  $DIR/solr/schema.xml.patch -o $DIR/solr/WEB-INF/classes/solr-home/conf/schema.xml
+#  patch -N $DIR/WEB-INF/classes/solr-home/conf/solrconfig.xml  $DIR/solr/solrconfig.xml.patch -o $DIR/solr/WEB-INF/classes/solr-home/conf/solrconfig.xml \
+#    && echo "Patched solrconfig.xml" || \
+#    cp $DIR/WEB-INF/classes/solr-home/conf/solrconfig.xml $DIR/solr/WEB-INF/classes/solr-home/conf/solrconfig.xml && echo "Copied solrconfig.xml"
 
   # Patch eml-dataset.xsl with eml-dataset.xsl.patch for the current release
   unzip "$DIR/metacat.war" "style/skins/metacatui/eml-2/eml-dataset.xsl"   -d "$DIR"
@@ -111,20 +111,20 @@ then
   echo "docker build ${DOCKER_BUILD_OPTIONS} -f $DIR/metacat/Dockerfile -t ${IMAGE_NAME} $BUILD_ARGS $DIR/"
   docker build ${DOCKER_BUILD_OPTIONS} -f $DIR/metacat/Dockerfile -t ${IMAGE_NAME} $BUILD_ARGS $DIR/
 
-  # create the docker tag
-  DOCKER_TAG="${VERSION}-${SOLR_VERSION}-p$(cd $DIR; git rev-list HEAD --count)"
-
-  # Determine if there is an image registry
-  IMAGE_NAME="metacat-solr:${DOCKER_TAG}"
-  if [ "${REGISTRY}" != "" ];
-  then
-    # There is a spin registry
-    IMAGE_NAME="${REGISTRY}/${IMAGE_NAME}"
-  fi
-
-  echo "docker build ${DOCKER_BUILD_OPTIONS} -f $DIR/solr/Dockerfile -t ${IMAGE_NAME} $BUILD_ARGS $DIR/"
-  docker pull solr:${SOLR_VERSION}
-  docker build ${DOCKER_BUILD_OPTIONS} -f $DIR/solr/Dockerfile -t ${IMAGE_NAME} $BUILD_ARGS $DIR/
+#  # create the docker tag
+#  DOCKER_TAG="${VERSION}-${SOLR_VERSION}-p$(cd $DIR; git rev-list HEAD --count)"
+#
+#  # Determine if there is an image registry
+#  IMAGE_NAME="metacat-solr:${DOCKER_TAG}"
+#  if [ "${REGISTRY}" != "" ];
+#  then
+#    # There is a spin registry
+#    IMAGE_NAME="${REGISTRY}/${IMAGE_NAME}"
+#  fi
+#
+#  echo "docker build ${DOCKER_BUILD_OPTIONS} -f $DIR/solr/Dockerfile -t ${IMAGE_NAME} $BUILD_ARGS $DIR/"
+#  docker pull solr:${SOLR_VERSION}
+#  docker build ${DOCKER_BUILD_OPTIONS} -f $DIR/solr/Dockerfile -t ${IMAGE_NAME} $BUILD_ARGS $DIR/
 else
 
   echo "ERROR: Metacat Version $VERSION not supported anymore. Please use Metacat>=2.13.0"
