@@ -34,7 +34,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         logrotate \
         rsync \
     && rm -rfv /var/lib/apt/lists/* \
-    && unzip /tmp/metacat-index.war -d /usr/local/tomcat/webapps/metacat-index \
     && unzip /tmp/metacat.war -d /usr/local/tomcat/webapps/metacat \
     && rm -rfv /usr/local/tomcat/webapps/metacat/WEB-INF/lib/osti-elink-*.jar  \
     && rsync -auv /tmp/files/ /usr/local/tomcat/webapps/metacat/ \
@@ -42,9 +41,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rvf /tmp/*.war /tmp/files /tmp/catalina.properties
 
 ADD metacat/metacat.conf /etc/logrotate.d/
-
-COPY metacat/apply_context.py /usr/local/bin/
-RUN chmod 775 /usr/local/bin/apply_context.py && ln -s usr/local/bin/apply_context.py / # backwards compat
 
 COPY metacat/docker-entrypoint.sh /usr/local/bin/
 RUN chmod 775 /usr/local/bin/docker-entrypoint.sh && ln -s usr/local/bin/docker-entrypoint.sh / # backwards compat

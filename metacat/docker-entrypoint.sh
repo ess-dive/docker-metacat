@@ -3,7 +3,7 @@
 set -e
 DEBUG=${DEBUG:0}
 
-sed -i.bak "s/^rootLogger.level=.*/rootLogger.level=INFO/" /usr/local/tomcat/webapps/metacat-index/WEB-INF/classes/log4j2.properties
+sed -i.bak "s/^rootLogger.level=.*/rootLogger.level=INFO/" /usr/local/tomcat/webapps/metacat/WEB-INF/classes/log4j2.properties
 
 if [ $DEBUG -eq 1 ];
 then
@@ -53,8 +53,6 @@ if [ "$1" = 'bin/catalina.sh' ]; then
         mv $METACAT_DEFAULT_DIR $METACAT_DIR
 
     fi
-    # change the context in the web.xml file
-    apply_context.py metacat ${METACAT_APP_CONTEXT}
 
     DEFAULT_PROPERTIES_FILE=/var/metacat/config/metacat-site.properties
     APP_PROPERTIES_FILE=${APP_PROPERTIES_FILE:-/config/app.properties}
