@@ -3,15 +3,15 @@
     <xsl:output method="text" encoding="UTF-8" omit-xml-declaration="yes" indent="yes" media-type="application/json"/>
     <xsl:strip-space elements="*"/>
 
-    <xsl:param name="access" select="UNL"/>
-    <xsl:param name="country" select="US"/>
-    <xsl:param name="data_type" select="DA"/>
-    <xsl:param name="default_doe_contract" select="AC02-05CH11231"/>
-    <xsl:param name="lang" select="English"/>
+    <xsl:param name="access" select="'UNL'"/>
+    <xsl:param name="country" select="'US'"/>
+    <xsl:param name="data_type" select="'DA'"/>
+    <xsl:param name="default_doe_contract" select="'AC02-05CH11231'"/>
+    <xsl:param name="lang" select="'English'"/>
     <xsl:param name="osti_id"/>
-    <xsl:param name="site_code" select="ESS-DIVE"/>
+    <xsl:param name="site_code" select="'ESS-DIVE'"/>
     <xsl:param name="site_url"/>
-    <xsl:param name="workflow_status" select="SA"/>
+    <xsl:param name="workflow_status" select="'SA'"/>
 
 
     <xsl:template match="@* | node()">
