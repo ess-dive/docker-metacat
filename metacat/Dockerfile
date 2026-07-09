@@ -1,4 +1,4 @@
-FROM tomcat:9.0-jre17
+FROM tomcat:9.0.118-jre25-temurin-noble
 
 # Debian Tomcat UID
 ARG METACAT_UID=108
